@@ -17,52 +17,60 @@ while security < 3:
                 print("3. Delete a hobby.")
                 print("4. Set a goal for your hobby.")
                 print("5. Exit.")
-                option_capture = int(input("Enter the number of your choice: "))
+                try:
+                    option_capture = int(input("Enter the number of your choice: "))
 
-                if option_capture == 1:
-                    hobby = input("Please type your hobby: ").lower()
-                    hobbies_list.append(hobby)
-                    print(f"{hobby} added to your list!")
+                    if option_capture == 1:
+                        hobby = input("Please type your hobby: ").lower()
+                        hobbies_list.append(hobby)
+                        print(f"{hobby.capitalize()} added to your list!")
 
-                elif option_capture == 2:
-                    if len(hobbies_list) == 0:
-                        print("You don't have any hobbies at the moment")
-                    else:
-                        print("Here is your hobbie's list!")
-                        for i in hobbies_list:
-                            for key, value in i.items():
-                               goal = " ".join(str(x) for x in i[key])                                                         
-                               print(f"Hobby: {key.capitalize()} | Goal: {goal}")
+                    elif option_capture == 2:
+                        if len(hobbies_list) == 0:
+                            print("You don't have any hobbies at the moment")
+                        else:
+                            print("Here is your hobbie's list!")
+                            for i in hobbies_list:
+                                for key, value in i.items():
+                                    if value:
+                                        goal = " ".join(str(x) for x in i[key])                                                       
+                                        print(f"Hobby: {key.capitalize()} | Goal: {goal}")
+                                    else:
+                                        print(f"Hobby: {key.capitalize()} | Goal: It has not been defined yet.")                                 
+                            
+                            
 
-                elif option_capture == 3:
-                    element_remove = input("Please type the hobby you would like to remove: ").lower()
-                    if element_remove in hobbies_list:
-                        hobbies_list.remove(element_remove)
-                        print(f"{element_remove} removed from your list!")
-                    else:
-                        print("Sorry, the hobby typed is not in the list.")
+                    elif option_capture == 3:
+                        element_remove = input("Please type the hobby you would like to remove: ").lower()
+                        if element_remove in hobbies_list:
+                            hobbies_list.remove(new_hobby)
+                            print(f"{element_remove} removed from your list!")
+                        else:
+                            print("Sorry, the hobby typed is not in the list.")
 
-                        
+                            
 
-                elif option_capture == 4:
-                    edit_option = input('What hobby would you like to set a goal for? ').lower()
-                    if edit_option in hobbies_list:
-                        unit_measure = input("Insert the unit measure for your hobby: ")
-                        hobby_goal = float(input(f"Insert the goal in {unit_measure} for {edit_option} today: "))                        
-                        new_hobby = {edit_option: [hobby_goal, unit_measure]}
-                        hobbies_list.append(new_hobby)
-                        hobbies_list.remove(edit_option)
+                    elif option_capture == 4:
+                        edit_option = input('What hobby would you like to set a goal for? ').lower()
+                        if edit_option in hobbies_list:
+                            unit_measure = input("Insert the unit measure for your hobby: ")
+                            hobby_goal = float(input(f"Insert the goal in {unit_measure} for {edit_option} today: "))                        
+                            new_hobby = {edit_option: [hobby_goal, unit_measure]}
+                            hobbies_list.append(new_hobby)
+                            hobbies_list.remove(edit_option)
 
-                    else:
-                        print("Sorry, hobby not in the list.")
-            
+                        else:
+                            print("Sorry, hobby not in the list.")
                 
-                elif option_capture == 5:
-                    print("See you next time!")
-                    break
+                    
+                    elif option_capture == 5:
+                        print("See you next time!")
+                        break
 
-                else:
-                    print("Invalid option, try again.")
+                    else:
+                        print("Invalid option, try again.")
+                except ValueError:
+                    print("Please select one of the available options.")
         break
 
     else:

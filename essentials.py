@@ -1,7 +1,7 @@
 print("Welcome to Essentials!  \nStay on top of your favorite hobbies.")
 
 
-hobbies_list = []
+hobbies_list = {}
 
 security = 0
 
@@ -22,29 +22,28 @@ while security < 3:
 
                     if option_capture == 1:
                         hobby = input("Please type your hobby: ").lower()
-                        hobbies_list.append(hobby)
+                        hobbies_list[hobby] = None
                         print(f"{hobby.capitalize()} added to your list!")
+                        print(hobbies_list)
 
                     elif option_capture == 2:
                         if len(hobbies_list) == 0:
                             print("You don't have any hobbies at the moment")
                         else:
                             print("Here is your hobbie's list!")
-                            for i in hobbies_list:
-                                for key, value in i.items():
-                                    if value:
-                                        goal = " ".join(str(x) for x in i[key])                                                       
-                                        print(f"Hobby: {key.capitalize()} | Goal: {goal}")
-                                    else:
-                                        print(f"Hobby: {key.capitalize()} | Goal: It has not been defined yet.")                                 
-                            
+                            for key, value in hobbies_list.items():
+                                if value:                                                                                         
+                                    print(f"Hobby: {key.capitalize()} | Goal: {value} {unit_measure}")
+                                else:
+                                    print(f"Hobby: {key.capitalize()} | Goal: It has not been defined yet.")                                 
+                        
                             
 
                     elif option_capture == 3:
                         element_remove = input("Please type the hobby you would like to remove: ").lower()
                         if element_remove in hobbies_list:
-                            hobbies_list.remove(new_hobby)
-                            print(f"{element_remove} removed from your list!")
+                            hobbies_list.pop(element_remove)
+                            print(f"{element_remove.capitalize()} removed from your list!")
                         else:
                             print("Sorry, the hobby typed is not in the list.")
 
@@ -55,10 +54,7 @@ while security < 3:
                         if edit_option in hobbies_list:
                             unit_measure = input("Insert the unit measure for your hobby: ")
                             hobby_goal = float(input(f"Insert the goal in {unit_measure} for {edit_option} today: "))                        
-                            new_hobby = {edit_option: [hobby_goal, unit_measure]}
-                            hobbies_list.append(new_hobby)
-                            hobbies_list.remove(edit_option)
-
+                            hobbies_list[edit_option] = hobby_goal                            
                         else:
                             print("Sorry, hobby not in the list.")
                 

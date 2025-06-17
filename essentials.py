@@ -8,8 +8,9 @@ security = 0
 while security < 3:
     login = input("Login: ")
     password = int(input("Password: "))
-    progress = 0
     percentage_progress = 0
+    value = 0
+    progress = 0
     if login == 'evrot' and password == 102030:
         print("\nHi, are you ready to track your hobbies? Shall we?")
         while True:
@@ -25,8 +26,9 @@ while security < 3:
 
                     if option_capture == 1:
                         hobby = input("\nPlease type your hobby: ").lower()
-                        hobbies_list[hobby] = None
+                        hobbies_list[hobby] = {}
                         print(f"\n{hobby.capitalize()} added to your list!")
+                        
                         
                     elif option_capture == 2:
                         if len(hobbies_list) == 0:
@@ -35,12 +37,15 @@ while security < 3:
                             print("Here is your hobbie's list!")
                             for key, value in hobbies_list.items():
                                 if value:
-                                    if progress:                                                                                                                       
-                                        print(f"Hobby: {key.capitalize()} | Goal: {value} {unit_measure} | Progress: {progress} {unit_measure} {percentage_progress}% of your goal!")
+                                    if "Progress":                                                                                                                       
+                                        print(f"Hobby: {key.capitalize()} | Goal: {value["Hobby Goal"]} {value["Unit Measure"]} | Progress: {value["Progress"]} {value["Unit Measure"]} ({value["Percentage Progress"]}% of your goal)")
+                                        
                                     else:
-                                        print(f"Hobby: {key.capitalize()} | Goal: {value} {unit_measure} | Progress: It has not been defined yet.")
+                                        print(f"Hobby: {key.capitalize()} | Goal: {value["Hobby Goal"]} {value["Unit Measure"]} | Progress: It has not been defined yet.")
+                                        
                                 else:
-                                    print(f"Hobby: {key.capitalize()} | Goal: It has not been defined yet. | Progress: It has not been defined yet.")                                 
+                                    print(f"Hobby: {key.capitalize()} | Goal: It has not been defined yet. | Progress: It has not been defined yet.") 
+                                                                  
                         
                             
 
@@ -59,8 +64,9 @@ while security < 3:
                         if edit_option in hobbies_list:
                             unit_measure = input("Insert the unit measure for your hobby: ")
                             hobby_goal = round(float(input(f"Insert the goal in {unit_measure} for {edit_option} today: ")), 2)                        
-                            hobbies_list[edit_option] = hobby_goal
-                            print(f"\nAll set! You can start working on your {edit_option} to achieve your today's {hobby_goal} {unit_measure}!")                            
+                            hobbies_list[edit_option] = {"Hobby Goal": hobby_goal, "Unit Measure": unit_measure}
+                            print(f"\nAll set! You can start working on your {edit_option} to achieve your today's {hobby_goal} {unit_measure}!")
+                            print(hobbies_list)
                         else:
                             print("\nSorry, hobby not in the list.")
                 
@@ -69,9 +75,18 @@ while security < 3:
                         update_progress = input("What hobby would you like to update your progress? ").lower()
                         if update_progress in hobbies_list:
                             progress = round(float(input("Please type your progress: ")), 2)
-                            print("\nYou are unstoppable! You're getting closer to your goal—stay relentless in your pursuit!")                                                   
+                            if "Progress" in hobbies_list[update_progress]:
+                                                            hobbies_list[update_progress]["Progress"] += progress                                
+                                                            percentage_progress = round(hobbies_list[update_progress]["Progress"]*100/hobbies_list[update_progress]["Hobby Goal"], 2)                                                            
+                            else:
+                                 hobbies_list[update_progress]["Progress"] = progress
+                                 percentage_progress = round(hobbies_list[update_progress]["Progress"]*100/hobbies_list[update_progress]["Hobby Goal"], 2)                                         
+                                      
+                                                                                                                                                              
+                            hobbies_list[update_progress]["Percentage Progress"] = percentage_progress                                          
+                            print("\nYou are unstoppable! You're getting closer to your goal. Stay relentless in your pursuit!") 
                         else:
-                            print("\nSorry, hobby not in the list.")
+                            print("\nSorry, but the hobby is not on the list, or you haven't set a goal yet.")
 
                     
                     elif option_capture == 6:
@@ -81,7 +96,7 @@ while security < 3:
                     else:
                         print("Invalid option, try again.")
                 except ValueError:
-                    print("Please select one of the available options.")
+                    print("Please select one of the available options, or adjust your entry.")
         break
 
     else:

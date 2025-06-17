@@ -70,7 +70,7 @@ while security < 3:
                     
                     elif option_capture == 5:
                         update_progress = input("What hobby would you like to update your progress? ").lower()
-                        if update_progress in hobbies_list:
+                        if update_progress in hobbies_list and "Hobby Goal" in hobbies_list[update_progress]:
                             progress = round(float(input("Please type your progress: ")), 2)
                             if "Progress" in hobbies_list[update_progress]:
                                                             hobbies_list[update_progress]["Progress"] += progress                                

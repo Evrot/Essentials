@@ -7,10 +7,7 @@ security = 0
 
 while security < 3:
     login = input("Login: ")
-    password = int(input("Password: "))
-    percentage_progress = 0
-    value = 0
-    progress = 0
+    password = int(input("Password: "))    
     if login == 'evrot' and password == 102030:
         print("\nHi, are you ready to track your hobbies? Shall we?")
         while True:
@@ -37,7 +34,7 @@ while security < 3:
                             print("Here is your hobbie's list!")
                             for key, value in hobbies_list.items():
                                 if value:
-                                    if "Progress":                                                                                                                       
+                                    if "Progress" in value:                                                                                                                       
                                         print(f"Hobby: {key.capitalize()} | Goal: {value["Hobby Goal"]} {value["Unit Measure"]} | Progress: {value["Progress"]} {value["Unit Measure"]} ({value["Percentage Progress"]}% of your goal)")
                                         
                                     else:
@@ -66,7 +63,7 @@ while security < 3:
                             hobby_goal = round(float(input(f"Insert the goal in {unit_measure} for {edit_option} today: ")), 2)                        
                             hobbies_list[edit_option] = {"Hobby Goal": hobby_goal, "Unit Measure": unit_measure}
                             print(f"\nAll set! You can start working on your {edit_option} to achieve your today's {hobby_goal} {unit_measure}!")
-                            print(hobbies_list)
+                            
                         else:
                             print("\nSorry, hobby not in the list.")
                 

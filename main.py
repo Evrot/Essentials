@@ -7,7 +7,11 @@ from kivy.uix.label import Label
 from kivy.config import Config
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from kivymd.uix.card import MDCard
+from kivymd.uix.swiper import MDSwiper, MDSwiperItem
+from kivymd.uix.label import MDLabel
 from kivymd.uix.floatlayout import MDFloatLayout
+
 
 
 
@@ -267,42 +271,57 @@ class DeleteHobbyScreen(Screen):
     def clear_fields_delete(self):
         self.ids.hobby_to_delete.text = ""
 
-class HobbiesListScreen(Screen):       
-    def adding_to_list(self):
-        hobby_screen_app = MDApp.get_running_app()
-        acess_hobby_screen = hobby_screen_app.root.get_screen("hobbies_list") 
-        user_id = hobby_screen_app.current_user_id
+class HobbiesListScreen(Screen):
+    def on_enter(self):
+        self.showing_list()
+
+    def showing_list(self):
+        acess = MDApp.get_running_app()
+        hobbies_list_screen = acess.root.get_screen("hobbies_list")          
+        user_id = acess.current_user_id
+
         
-        with sqlite3.connect("data/essentials_db.db", timeout=5) as conn:
+        with sqlite3.connect("data/essentials_db.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("""SELECT user_id, hobby_name FROM hobbies WHERE user_id = ?""", (user_id,))                
+            cursor.execute("SELECT hobby_name FROM hobbies WHERE user_id = ?",(user_id,))
             hobbies_list = cursor.fetchall()
+        
+        swiper = MDSwiper(
+                    size_hint=(0.9, 0.6),
+                    pos_hint={"center_x": 0.5, "center_y": 0.40},            
+                )
+        for i in hobbies_list:
+            hobby = i[0]              
+            
+            swiper_item = MDSwiperItem() 
+            float_layout = MDFloatLayout(orientation="vertical")        
 
-        items_per_row = 4
-        start_x = 0.125        
-        start_y = 0.65         
-        x_spacing = 0.20       
-        y_spacing = 0.3
-
-        for i, hobby_data in enumerate(hobbies_list):
-            hobby = hobby_data[1]     
-            row = i // items_per_row     
-            col = i % items_per_row 
-            x_pos = start_x + (col * x_spacing)
-            y_pos = start_y - (row * y_spacing)
-
-            if y_pos < 0.1:            
-                break        
-            hobby = Label(
+            card = MDCard(
+                size_hint=(None, None),
+                size=(400, 450),
+                pos_hint={"center_x": 0.5, "center_y": 0.5},
+                md_bg_color="black",
+                radius=[30],
+                elevation=4.5,
+                shadow_color= (0.5, 0.8, 0.5, 1)
+            )
+            card.add_widget(Label(
                 text=hobby,
                 halign="center",
-                pos_hint={"center_x": x_pos, "center_y": y_pos},
-                font_size="16sp",
-                size_hint=(0.2, 0.1),
-                color=(0, 0, 0, 1),
-                font_name= "fonts/pixelify_bold.ttf"  
-            )
-            acess_hobby_screen.add_widget(hobby)    
+                valign="top",
+                size_hint= (.8, None),
+                pos_hint= {"top": 1, "center_x": 0.5},            
+                font_name= "fonts/pixelify_bold.ttf",            
+                color=(1,1,1,1),
+                font_size= (30),            
+            ))
+
+            float_layout.add_widget(card)            
+            swiper_item.add_widget(float_layout)            
+            swiper.add_widget(swiper_item)           
+
+        hobbies_list_screen.add_widget(swiper)
+
     
          
 

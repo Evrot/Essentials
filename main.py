@@ -11,6 +11,7 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.swiper import MDSwiper, MDSwiperItem
 from kivymd.uix.label import MDLabel
 from kivymd.uix.floatlayout import MDFloatLayout
+from kivy.core.window import Window
 
 
 
@@ -277,52 +278,84 @@ class HobbiesListScreen(Screen):
 
     def showing_list(self):
         acess = MDApp.get_running_app()
-        hobbies_list_screen = acess.root.get_screen("hobbies_list")          
-        user_id = acess.current_user_id
+        hobbies_list_screen = acess.root.get_screen("hobbies_list")
+        base_layout = hobbies_list_screen.ids.base  
+        user_id = acess.current_user_id        
 
-        
         with sqlite3.connect("data/essentials_db.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT hobby_name FROM hobbies WHERE user_id = ?",(user_id,))
+            cursor.execute("SELECT hobby_name FROM hobbies WHERE user_id = ?", (user_id,))
             hobbies_list = cursor.fetchall()
+       
+        widgets_to_remove = []
+        for child in base_layout.children:           
+            if isinstance(child, MDSwiper):
+                widgets_to_remove.append(child)                
+
+        for widget in widgets_to_remove:
+            try:
+                base_layout.remove_widget(widget)                
+            except Exception as e:
+                print(f"Error to remove the swiper")        
+
+        if not hobbies_list:
+            label = Label(
+                text="Sorry, you haven't added any hobbies yet.",
+                halign="center",
+                valign="top",
+                size_hint=(.8, None),
+                pos_hint={"top": 0.6, "center_x": 0.5},            
+                font_name="fonts/pixelify_bold.ttf",            
+                color=(0, 0, 0, 1),
+                font_size=20,            
+            )
+            base_layout.add_widget(label)
+            return
+
         
         swiper = MDSwiper(
-                    size_hint=(0.9, 0.6),
-                    pos_hint={"center_x": 0.5, "center_y": 0.40},            
-                )
+            size_hint=(0.9, 0.6),
+            pos_hint={"center_x": 0.5, "center_y": 0.40})        
+
+        
         for i in hobbies_list:
-            hobby = i[0]              
+            hobby = i[0]            
             
-            swiper_item = MDSwiperItem() 
-            float_layout = MDFloatLayout(orientation="vertical")        
+            swiper_item = MDSwiperItem()
+            float_layout = MDFloatLayout()
 
             card = MDCard(
                 size_hint=(None, None),
-                size=(400, 450),
+                size=(Window.width * 0.4, Window.height * 0.5),
                 pos_hint={"center_x": 0.5, "center_y": 0.5},
                 md_bg_color="black",
                 radius=[30],
-                elevation=4.5,
-                shadow_color= (0.5, 0.8, 0.5, 1)
+                elevation=2,
+                shadow_color=(0.5, 0.8, 0.5, 1)
             )
-            card.add_widget(Label(
+            
+            label = Label(
                 text=hobby,
                 halign="center",
                 valign="top",
-                size_hint= (.8, None),
-                pos_hint= {"top": 1, "center_x": 0.5},            
-                font_name= "fonts/pixelify_bold.ttf",            
-                color=(1,1,1,1),
-                font_size= (30),            
-            ))
+                size_hint=(.8, None),
+                pos_hint={"top": 1, "center_x": 0.5},            
+                font_name="fonts/pixelify_bold.ttf",            
+                color=(1, 1, 1, 1),
+                font_size=25,            
+            )
 
+            card.add_widget(label)
             float_layout.add_widget(card)            
             swiper_item.add_widget(float_layout)            
-            swiper.add_widget(swiper_item)           
-
-        hobbies_list_screen.add_widget(swiper)
-
-    
-         
+            swiper.add_widget(swiper_item)        
+        
+        try:
+            base_layout.add_widget(swiper)
+            
+        except Exception as e:
+            print(f"Error!")       
+        
+        
 
 Essentials().run()  

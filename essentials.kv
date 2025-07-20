@@ -175,7 +175,9 @@ ScreenManager:
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
-                on_release: app.root.current = "delete_hobby"
+                on_release: 
+                        app.root.current = "delete_hobby"
+                        app.root.get_screen("hobbies_list").showing_list()
 
 
         MDFlatButton:
@@ -509,6 +511,7 @@ ScreenManager:
         
         name: "hobbies_list"
         MDFloatLayout:
+                id: base
                 orientation: "vertical"
                 Image:
                         source: "images/background_3.png"
@@ -553,4 +556,8 @@ ScreenManager:
                                 app.root.current = "home"
 
                                 
-                
+                MDSwiper:       
+                        id: swiper                
+                        size_hint: 0.9, 0.6
+                        pos_hint: {"center_x": 0.5, "center_y": 0.40}           
+        

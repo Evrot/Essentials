@@ -9,9 +9,10 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from kivymd.uix.card import MDCard
 from kivymd.uix.swiper import MDSwiper, MDSwiperItem
-from kivymd.uix.label import MDLabel
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivy.core.window import Window
+from kivymd.uix.progressbar import MDProgressBar
+
 
 
 
@@ -58,8 +59,9 @@ class Essentials(MDApp):
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER NOT NULL,
                     hobby_name TEXT NOT NULL,
-                    unit_measure TEXT,                    
-                    measure REAL,
+                    unit_measure TEXT,
+                    goal REAL,                    
+                    progress REAL,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id),
                     UNIQUE(user_id, hobby_name)
@@ -177,17 +179,18 @@ class Essentials(MDApp):
         hobby_screen = self.root.get_screen("hobby")     
         hobby = hobby_screen.ids.user_hobby.text.strip().title()
         unit_measure = hobby_screen.ids.user_measure_hobby.text.strip().title()
+        goal = hobby_screen.ids.user_hobby_goal.text.strip()
         user_id = self.current_user_id
 
-        if not hobby or not unit_measure:
-            self.show_popup("Please enter a hobby name or its unit measures.", title="Oops!")
+        if not hobby or not unit_measure or not goal:
+            self.show_popup("Please, fill in all the fields.", title="Oops!")
             return
         
                 
         try:
             conn = sqlite3.connect("data/essentials_db.db", timeout = 5)
             cursor = conn.cursor()
-            cursor.execute("""SELECT unit_measure, hobby_name FROM hobbies WHERE user_id = ? AND hobby_name = ? """, (user_id, hobby))
+            cursor.execute("""SELECT unit_measure, hobby_name, goal FROM hobbies WHERE user_id = ? AND hobby_name = ?  """, (user_id, hobby))
             existing = cursor.fetchone()
 
             if existing:
@@ -197,9 +200,9 @@ class Essentials(MDApp):
                 
             else:
                 cursor.execute("""
-                    INSERT OR IGNORE INTO hobbies (user_id, hobby_name, unit_measure)
-                    VALUES (?, ?, ?)
-                """, (user_id, hobby, unit_measure))
+                    INSERT OR IGNORE INTO hobbies (user_id, hobby_name, unit_measure, goal)
+                    VALUES (?, ?, ?, ?)
+                """, (user_id, hobby, unit_measure, goal))
 
                 conn.commit()
                 conn.close()
@@ -207,6 +210,7 @@ class Essentials(MDApp):
                 self.show_popup(f"{hobby} added successfully!", title="Nice!")
                 hobby_screen.ids.user_hobby.text = ""
                 hobby_screen.ids.user_measure_hobby.text = ""
+                hobby_screen.ids.user_hobby_goal.text = ""
                 self.root.current = "home"
 
         except sqlite3.IntegrityError:
@@ -268,6 +272,7 @@ class HobbyScreen(Screen):
     def clear_fields_hobby(self):
         self.ids.user_hobby.text = ""
         self.ids.user_measure_hobby.text = ""
+        self.ids.user_hobby_goal.text = ""
 
 class DeleteHobbyScreen(Screen):
     def clear_fields_delete(self):
@@ -277,6 +282,7 @@ class HobbiesListScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.no_hobbies_label = None
+        
 
 
     def showing_list(self):
@@ -330,7 +336,7 @@ class HobbiesListScreen(Screen):
             hobby = i[0]            
             
             swiper_item = MDSwiperItem()
-            float_layout = MDFloatLayout()
+            float_layout = MDFloatLayout(orientation="vertical")
 
             card = MDCard(
                 size_hint=(None, None),
@@ -350,10 +356,11 @@ class HobbiesListScreen(Screen):
                 pos_hint={"top": 1, "center_x": 0.5},            
                 font_name="fonts/pixelify_bold.ttf",            
                 color=(1, 1, 1, 1),
-                font_size=25,            
-            )
-
-            card.add_widget(label)
+                font_size=25,           
+            )              
+             
+            
+            card.add_widget(label)                       
             float_layout.add_widget(card)            
             swiper_item.add_widget(float_layout)            
             swiper.add_widget(swiper_item)        

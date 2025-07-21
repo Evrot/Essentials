@@ -137,7 +137,9 @@ ScreenManager:
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
-                on_release: app.root.current = "hobby"
+                on_release: 
+                        app.root.current = "hobby"
+                        
 
         MDFlatButton:
                 id: check_hobbies_list
@@ -149,9 +151,10 @@ ScreenManager:
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
-                on_release:                        
+                on_press: app.root.get_screen("hobbies_list").showing_list()
+                on_release:                                            
                         app.root.current = "hobbies_list"
-                        app.root.get_screen("hobbies_list").showing_list()
+                        
                         
 
         MDFlatButton:
@@ -177,7 +180,7 @@ ScreenManager:
                 text_color: 1, 1, 1, 1
                 on_release: 
                         app.root.current = "delete_hobby"
-                        app.root.get_screen("hobbies_list").showing_list()
+                        
 
 
         MDFlatButton:

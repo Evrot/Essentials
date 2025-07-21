@@ -26,6 +26,7 @@ class Essentials(MDApp):
         super().__init__(**kwargs)
         self.current_user_id = None
         self.greeting_name = ""
+        
 
     def build(self):        
         self.create_user_table()
@@ -273,8 +274,10 @@ class DeleteHobbyScreen(Screen):
         self.ids.hobby_to_delete.text = ""
 
 class HobbiesListScreen(Screen):
-    def on_enter(self):
-        self.showing_list()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.no_hobbies_label = None
+
 
     def showing_list(self):
         acess = MDApp.get_running_app()
@@ -292,6 +295,11 @@ class HobbiesListScreen(Screen):
             if isinstance(child, MDSwiper):
                 widgets_to_remove.append(child)                
 
+        for son in base_layout.children:
+            if son == self.no_hobbies_label and hobbies_list:
+                widgets_to_remove.append(son)
+                
+
         for widget in widgets_to_remove:
             try:
                 base_layout.remove_widget(widget)                
@@ -299,7 +307,7 @@ class HobbiesListScreen(Screen):
                 print(f"Error to remove the swiper")        
 
         if not hobbies_list:
-            label = Label(
+            self.no_hobbies_label = Label(                
                 text="Sorry, you haven't added any hobbies yet.",
                 halign="center",
                 valign="top",
@@ -307,9 +315,9 @@ class HobbiesListScreen(Screen):
                 pos_hint={"top": 0.6, "center_x": 0.5},            
                 font_name="fonts/pixelify_bold.ttf",            
                 color=(0, 0, 0, 1),
-                font_size=20,            
+                font_size=25,            
             )
-            base_layout.add_widget(label)
+            base_layout.add_widget(self.no_hobbies_label)
             return
 
         

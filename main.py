@@ -11,7 +11,10 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.swiper import MDSwiper, MDSwiperItem
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivy.core.window import Window
+from kivymd.uix.button import MDIconButton
 from kivymd.uix.progressbar import MDProgressBar
+from kivymd.uix.textfield import MDTextField
+
 
 
 
@@ -229,8 +232,7 @@ class Essentials(MDApp):
         if hobby_check:
             try:   
                 cursor.execute("DELETE FROM hobbies WHERE user_id = ? and hobby_name = ?", (user_id, hobby_to_delete))
-                conn.commit()
-                acess_hobby_screen = self.root.get_screen("hobbies_list")                
+                conn.commit()                                
                 self.show_popup(f"{hobby_to_delete} was successfully deleted!")                
                 delete_screen.clear_fields_delete()
                 self.root.current = "home"
@@ -287,13 +289,14 @@ class HobbiesListScreen(Screen):
 
     def showing_list(self):
         acess = MDApp.get_running_app()
-        hobbies_list_screen = acess.root.get_screen("hobbies_list")
+        hobbies_list_screen = acess.root.get_screen("hobbies_list")        
         base_layout = hobbies_list_screen.ids.base  
-        user_id = acess.current_user_id        
+        user_id = acess.current_user_id
+               
 
         with sqlite3.connect("data/essentials_db.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT hobby_name FROM hobbies WHERE user_id = ?", (user_id,))
+            cursor.execute("SELECT hobby_name, unit_measure FROM hobbies WHERE user_id = ?", (user_id,))
             hobbies_list = cursor.fetchall()
        
         widgets_to_remove = []
@@ -333,16 +336,18 @@ class HobbiesListScreen(Screen):
 
         
         for i in hobbies_list:
-            hobby = i[0]            
+            hobby = i[0]
+            unit_measure = i[1]            
             
             swiper_item = MDSwiperItem()
-            float_layout = MDFloatLayout(orientation="vertical")
+            float_layout = MDFloatLayout()
+            card_layout = MDFloatLayout()
 
             card = MDCard(
                 size_hint=(None, None),
-                size=(Window.width * 0.4, Window.height * 0.5),
+                size=(Window.width * 0.4, Window.height * 0.55),
                 pos_hint={"center_x": 0.5, "center_y": 0.5},
-                md_bg_color="black",
+                md_bg_color=(0.902, 0.941, 0.941, 1),
                 radius=[30],
                 elevation=2,
                 shadow_color=(0.5, 0.8, 0.5, 1)
@@ -350,17 +355,96 @@ class HobbiesListScreen(Screen):
             
             label = Label(
                 text=hobby,
-                halign="center",
-                valign="top",
+                halign="center",                
                 size_hint=(.8, None),
-                pos_hint={"top": 1, "center_x": 0.5},            
+                pos_hint={"center_y": 0.7, "center_x": 0.5},            
                 font_name="fonts/pixelify_bold.ttf",            
-                color=(1, 1, 1, 1),
+                color=(0, 0, 0, 1),
                 font_size=25,           
-            )              
-             
+            )            
             
-            card.add_widget(label)                       
+            icon_1 = MDIconButton(
+                icon="brain",
+                size_hint=(None,None),
+                size = (150, 150),
+                pos_hint = {"center_y": 0.85, "center_x": 0.4}
+            )
+            icon_2 = MDIconButton(
+                icon="cross",
+                size_hint=(None,None),
+                size = (150, 150),
+                pos_hint = {"center_y": 0.85, "center_x": 0.5}
+            )
+            icon_3 = MDIconButton(
+                icon="timer-sand-complete",
+                size_hint=(None,None),
+                size = (150, 150),
+                pos_hint = {"center_y": 0.85, "center_x": 0.6}
+            )
+
+            percentage_field = Label(
+                text= "0%",
+                size_hint = (0.1, None),
+                pos_hint={"center_y": 0.6, "center_x": 0.9},
+                color = (0, 0, 0, 1),
+                font_size = 25,
+                font_name="fonts/pixelify_bold.ttf"
+            )
+
+            label_1 = Label(
+                text=unit_measure,
+                halign="center",               
+                size_hint=(0.8, None),
+                pos_hint={"center_y": 0.5, "center_x": 0.5},            
+                font_name="fonts/pixelify_bold.ttf",            
+                color=(0, 0, 0, 1),
+                font_size=25           
+            )
+
+            progress_bar = MDProgressBar(                
+                size_hint = (0.6, None),
+                pos_hint = {"center_x": 0.5, "center_y": 0.6},                
+                max = 100,
+                height = 20,
+                radius = [10]
+            )
+
+            progress_capture = MDTextField(
+                size_hint = (None, None),
+                size = (115, 50),
+                pos_hint = {"center_y": 0.33, "center_x": 0.5},
+                font_size = 22,
+                mode= "rectangle",
+                radius = [50],                                
+                font_name="fonts/pixelify_bold.ttf",
+                theme_text_color= "Custom",
+                line_color_focus= (0.5, 0.8, 0.5, 1),
+                line_color_normal= (0.5, 0.8, 0.5, 1),
+                cursor_color= (0.5, 0.8, 0.5, 1),
+                text_color_focus= (0, 0, 0, 1),                                             
+            )
+            progress_capture.bind(text=lambda instance, value: acess.limit_field_length(instance, value, 7))
+            
+
+            submit_progress = MDIconButton(
+                icon= "abacus",
+                icon_size= (50),               
+                pos_hint= {"center_x": 0.5, "center_y": 0.10},
+                md_bg_color= (0.5, 0.8, 0.5, 1),
+                theme_text_color= "Custom",
+                text_color= (1, 1, 1, 1)
+            )
+            
+            card_layout.add_widget(submit_progress)
+            card_layout.add_widget(progress_capture)
+            card_layout.add_widget(percentage_field)
+            card_layout.add_widget(icon_1)   
+            card_layout.add_widget(icon_2)
+            card_layout.add_widget(icon_3)            
+            card_layout.add_widget(progress_bar)
+            card_layout.add_widget(label_1)            
+            card_layout.add_widget(label)
+            card.add_widget(card_layout)                                   
             float_layout.add_widget(card)            
             swiper_item.add_widget(float_layout)            
             swiper.add_widget(swiper_item)        

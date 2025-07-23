@@ -11,15 +11,10 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.swiper import MDSwiper, MDSwiperItem
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivy.core.window import Window
-from kivymd.uix.button import MDIconButton
+from kivymd.uix.button import MDFlatButton
 from kivymd.uix.progressbar import MDProgressBar
 from kivymd.uix.textfield import MDTextField
-
-
-
-
-
-
+from kivymd.uix.fitimage import FitImage
 
 
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
@@ -282,21 +277,62 @@ class DeleteHobbyScreen(Screen):
 
 class HobbiesListScreen(Screen):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(**kwargs)        
         self.no_hobbies_label = None
+        self.progress_capture = None
+        self.progress = 0
+       
+
+    def progress_updating(self, hobby_name, progress_capture, label_1, progress_bar, goal, unit_measure, percentage):
+            text = progress_capture.text.strip()            
+            if text == "":
+                return  
+            
+            try:
+                self.progress += float(text)
+            except ValueError:                
+                print("ERROR! Wrong value.")
+                return
+            
+            acess = MDApp.get_running_app()
+            user_id = acess.current_user_id
+            
+            try:
+                with sqlite3.connect("data/essentials_db.db") as conn:
+                    cursor = conn.cursor()
+                    
+                    
+                    cursor.execute("""
+                        UPDATE hobbies
+                        SET progress = ?
+                        WHERE user_id = ? AND hobby_name = ?
+                    """, (self.progress, user_id, hobby_name))
+                    conn.commit()
+            except Exception as e:
+                print("ERROR! Wrong value.", e)
+                return
+
+            
+            label_1.text = f"{self.progress:.2f}/{goal} {unit_measure}"
+            percentage.text = f"{(100*self.progress)/goal:.2f}%"
+            progress_bar.value = min((self.progress / goal) * 100, 100)
+
+            
+            progress_capture.text = ""
+
         
 
 
     def showing_list(self):
-        acess = MDApp.get_running_app()
-        hobbies_list_screen = acess.root.get_screen("hobbies_list")        
+        acess = MDApp.get_running_app()              
+        hobbies_list_screen = acess.root.get_screen("hobbies_list")       
         base_layout = hobbies_list_screen.ids.base  
         user_id = acess.current_user_id
                
 
         with sqlite3.connect("data/essentials_db.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT hobby_name, unit_measure FROM hobbies WHERE user_id = ?", (user_id,))
+            cursor.execute("SELECT hobby_name, unit_measure, goal, progress FROM hobbies WHERE user_id = ?", (user_id,))
             hobbies_list = cursor.fetchall()
        
         widgets_to_remove = []
@@ -337,7 +373,12 @@ class HobbiesListScreen(Screen):
         
         for i in hobbies_list:
             hobby = i[0]
-            unit_measure = i[1]            
+            unit_measure = i[1]
+            goal = i[2]
+            progress = i[3]
+            if progress == None:
+                progress = 0
+                      
             
             swiper_item = MDSwiperItem()
             float_layout = MDFloatLayout()
@@ -357,65 +398,46 @@ class HobbiesListScreen(Screen):
                 text=hobby,
                 halign="center",                
                 size_hint=(.8, None),
-                pos_hint={"center_y": 0.7, "center_x": 0.5},            
+                pos_hint={"center_y": 0.6, "center_x": 0.5},            
                 font_name="fonts/pixelify_bold.ttf",            
                 color=(0, 0, 0, 1),
-                font_size=25,           
+                font_size=30,           
             )            
             
-            icon_1 = MDIconButton(
-                icon="brain",
-                size_hint=(None,None),
-                size = (150, 150),
-                pos_hint = {"center_y": 0.85, "center_x": 0.4}
-            )
-            icon_2 = MDIconButton(
-                icon="cross",
-                size_hint=(None,None),
-                size = (150, 150),
-                pos_hint = {"center_y": 0.85, "center_x": 0.5}
-            )
-            icon_3 = MDIconButton(
-                icon="timer-sand-complete",
-                size_hint=(None,None),
-                size = (150, 150),
-                pos_hint = {"center_y": 0.85, "center_x": 0.6}
-            )
-
             percentage_field = Label(
                 text= "0%",
                 size_hint = (0.1, None),
-                pos_hint={"center_y": 0.6, "center_x": 0.9},
+                pos_hint={"center_y": 0.5, "center_x": 0.9},
                 color = (0, 0, 0, 1),
                 font_size = 25,
                 font_name="fonts/pixelify_bold.ttf"
             )
 
             label_1 = Label(
-                text=unit_measure,
+                text = f"{progress}/{goal} {unit_measure}",                
                 halign="center",               
                 size_hint=(0.8, None),
-                pos_hint={"center_y": 0.5, "center_x": 0.5},            
+                pos_hint={"center_y": 0.4, "center_x": 0.5},            
                 font_name="fonts/pixelify_bold.ttf",            
                 color=(0, 0, 0, 1),
-                font_size=25           
+                font_size=30           
             )
 
             progress_bar = MDProgressBar(                
                 size_hint = (0.6, None),
-                pos_hint = {"center_x": 0.5, "center_y": 0.6},                
+                pos_hint = {"center_x": 0.5, "center_y": 0.5},                
                 max = 100,
                 height = 20,
-                radius = [10]
+                radius = [10],
+                color = (0.5, 0.8, 0.5, 1)
             )
 
-            progress_capture = MDTextField(
+            progress_capture = MDTextField(                
                 size_hint = (None, None),
+                input_filter = "float",
                 size = (115, 50),
-                pos_hint = {"center_y": 0.33, "center_x": 0.5},
-                font_size = 22,
-                mode= "rectangle",
-                radius = [50],                                
+                pos_hint = {"center_y": 0.25, "center_x": 0.5},
+                font_size = 22,                                               
                 font_name="fonts/pixelify_bold.ttf",
                 theme_text_color= "Custom",
                 line_color_focus= (0.5, 0.8, 0.5, 1),
@@ -425,22 +447,31 @@ class HobbiesListScreen(Screen):
             )
             progress_capture.bind(text=lambda instance, value: acess.limit_field_length(instance, value, 7))
             
+            bg_image = FitImage(
+                source="images/essentials_logo_3.png",
+                size_hint=(None, None),
+                size=(150, 150),
+                pos_hint={"center_x": 0.5, "center_y": 0.85},
+                radius=[40],  
+            )
+            
 
-            submit_progress = MDIconButton(
-                icon= "abacus",
-                icon_size= (50),               
+            submit_progress = MDFlatButton(
+                text = "Add your progress!",               
+                size_hint = (0.4, None),
+                font_name="fonts/pixelify_bold.ttf",               
                 pos_hint= {"center_x": 0.5, "center_y": 0.10},
                 md_bg_color= (0.5, 0.8, 0.5, 1),
                 theme_text_color= "Custom",
-                text_color= (1, 1, 1, 1)
+                text_color= (1, 1, 1, 1),
+                on_press=lambda instance, h=hobby, pc=progress_capture, l=label_1, pb=progress_bar, g=goal, u=unit_measure, p=percentage_field: 
+            self.progress_updating(h, pc, l, pb, g, u, p)
             )
             
+            card_layout.add_widget(bg_image)
             card_layout.add_widget(submit_progress)
             card_layout.add_widget(progress_capture)
-            card_layout.add_widget(percentage_field)
-            card_layout.add_widget(icon_1)   
-            card_layout.add_widget(icon_2)
-            card_layout.add_widget(icon_3)            
+            card_layout.add_widget(percentage_field)                     
             card_layout.add_widget(progress_bar)
             card_layout.add_widget(label_1)            
             card_layout.add_widget(label)

@@ -281,21 +281,37 @@ class HobbiesListScreen(Screen):
         self.no_hobbies_label = None
         self.progress_capture = None
         self.progress = 0
-       
+        
+    
 
     def progress_updating(self, hobby_name, progress_capture, label_1, progress_bar, goal, unit_measure, percentage):
+            acess = MDApp.get_running_app()
+            user_id = acess.current_user_id
             text = progress_capture.text.strip()            
             if text == "":
-                return  
+                return acess.show_popup("Don't forget to type in your progress first!", title="It's all good!") 
             
             try:
-                self.progress += float(text)
+                with sqlite3.connect("data/essentials_db.db") as conn:
+                    cursor = conn.cursor()
+
+                    cursor.execute("""
+                        SELECT progress
+                        FROM hobbies
+                        WHERE user_id = ? AND hobby_name = ?
+                    """, (user_id, hobby_name))
+                    result = cursor.fetchone()                    
+                    hobby_progress = result[0]
+
+                if hobby_progress:
+                    hobby_progress += float(text)
+                    self.progress = hobby_progress                    
+                else:
+                    self.progress = float(text)
             except ValueError:                
                 print("ERROR! Wrong value.")
                 return
-            
-            acess = MDApp.get_running_app()
-            user_id = acess.current_user_id
+                       
             
             try:
                 with sqlite3.connect("data/essentials_db.db") as conn:
@@ -328,6 +344,7 @@ class HobbiesListScreen(Screen):
         hobbies_list_screen = acess.root.get_screen("hobbies_list")       
         base_layout = hobbies_list_screen.ids.base  
         user_id = acess.current_user_id
+        
                
 
         with sqlite3.connect("data/essentials_db.db") as conn:
@@ -405,11 +422,11 @@ class HobbiesListScreen(Screen):
             )            
             
             percentage_field = Label(
-                text= "0%",
+                text= f"{(100*progress)/goal:.2f}%",
                 size_hint = (0.1, None),
                 pos_hint={"center_y": 0.5, "center_x": 0.9},
                 color = (0, 0, 0, 1),
-                font_size = 25,
+                font_size = 23,
                 font_name="fonts/pixelify_bold.ttf"
             )
 
@@ -420,7 +437,7 @@ class HobbiesListScreen(Screen):
                 pos_hint={"center_y": 0.4, "center_x": 0.5},            
                 font_name="fonts/pixelify_bold.ttf",            
                 color=(0, 0, 0, 1),
-                font_size=30           
+                font_size=25           
             )
 
             progress_bar = MDProgressBar(                
@@ -429,7 +446,8 @@ class HobbiesListScreen(Screen):
                 max = 100,
                 height = 20,
                 radius = [10],
-                color = (0.5, 0.8, 0.5, 1)
+                color = (0.5, 0.8, 0.5, 1),
+                value = min((progress / goal) * 100, 100)                
             )
 
             progress_capture = MDTextField(                

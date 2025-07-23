@@ -468,7 +468,7 @@ class HobbiesListScreen(Screen):
             bg_image = FitImage(
                 source="images/essentials_logo_3.png",
                 size_hint=(None, None),
-                size=(150, 150),
+                size=(200, 200),
                 pos_hint={"center_x": 0.5, "center_y": 0.85},
                 radius=[40],  
             )

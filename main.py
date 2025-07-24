@@ -18,6 +18,9 @@ from kivymd.uix.fitimage import FitImage
 import pytz
 
 
+
+
+Window.set_icon("images/icon_window.png")
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 

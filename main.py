@@ -15,6 +15,7 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.progressbar import MDProgressBar
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.fitimage import FitImage
+import pytz
 
 
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
@@ -65,6 +66,20 @@ class Essentials(MDApp):
                     UNIQUE(user_id, hobby_name)
                             )
                         """)
+        cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS statistic (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        hobby_name TEXT NOT NULL,
+                        unit_measure TEXT,
+                        goal REAL,                    
+                        progress REAL,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        created_date TEXT GENERATED ALWAYS AS (date(created_at)) VIRTUAL,
+                        UNIQUE(user_id, hobby_name, created_date)
+                            )
+                        """)
+
         conn.commit()
         conn.close()
         return self.root    
@@ -92,7 +107,7 @@ class Essentials(MDApp):
         
     def create_account(self):
         signup_screen = self.root.get_screen("signup")
-        fullname = signup_screen.ids.user_fullname.text.strip()
+        fullname = signup_screen.ids.user_fullname.text.strip().title()
         email = signup_screen.ids.user_email.text.strip().lower()
         password = signup_screen.ids.user_password.text.strip()
         confirm_password = signup_screen.ids.user_password_confirm.text.strip()
@@ -315,9 +330,7 @@ class HobbiesListScreen(Screen):
             
             try:
                 with sqlite3.connect("data/essentials_db.db") as conn:
-                    cursor = conn.cursor()
-                    
-                    
+                    cursor = conn.cursor()                   
                     cursor.execute("""
                         UPDATE hobbies
                         SET progress = ?
@@ -449,6 +462,7 @@ class HobbiesListScreen(Screen):
                 color = (0.5, 0.8, 0.5, 1),
                 value = min((progress / goal) * 100, 100)                
             )
+           
 
             progress_capture = MDTextField(                
                 size_hint = (None, None),
@@ -483,7 +497,7 @@ class HobbiesListScreen(Screen):
                 theme_text_color= "Custom",
                 text_color= (1, 1, 1, 1),
                 on_press=lambda instance, h=hobby, pc=progress_capture, l=label_1, pb=progress_bar, g=goal, u=unit_measure, p=percentage_field: 
-            self.progress_updating(h, pc, l, pb, g, u, p)
+            self.progress_updating(h, pc, l, pb, g, u, p),                
             )
             
             card_layout.add_widget(bg_image)
@@ -502,7 +516,44 @@ class HobbiesListScreen(Screen):
             base_layout.add_widget(swiper)
             
         except Exception as e:
-            print(f"Error!")       
+            print(f"Error!")
+
+    def storage_hobby(self):        
+        acess = MDApp.get_running_app()
+        user_id = acess.current_user_id
+        center_time = pytz.timezone("America/Chicago")
+        time_now = datetime.now(ZoneInfo("America/Chicago")).date()
+        reset_progress = 0
+
+
+        with sqlite3.connect("data/essentials_db.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT created_at, hobby_name FROM hobbies WHERE user_id =?""", (user_id,))
+            hobby_storage = cursor.fetchall()
+        
+            for created_at, hobby_name in hobby_storage:
+                conversion_datetime = datetime.strptime(created_at,"%Y-%m-%d %H:%M:%S")
+                utc_time = pytz.utc.localize(conversion_datetime)            
+                local_time = utc_time.astimezone(center_time).date()
+                           
+                if local_time != time_now:                    
+                        cursor.execute("""INSERT OR IGNORE INTO statistic (user_id, hobby_name, unit_measure, goal, progress, created_at)
+                                    SELECT user_id, hobby_name, unit_measure, goal, progress, created_at FROM hobbies
+                                    WHERE user_id = ? AND created_at = ?
+                                    """, (user_id, created_at)
+                                    )
+                        cursor.execute("""
+                            UPDATE hobbies
+                            SET progress = ?
+                            WHERE user_id = ? AND hobby_name = ?
+                        """, (reset_progress, user_id, hobby_name))
+                        conn.commit()
+            
+           
+
+        
+
+
         
         
 

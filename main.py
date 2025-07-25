@@ -29,6 +29,7 @@ class Essentials(MDApp):
         super().__init__(**kwargs)
         self.current_user_id = None
         self.greeting_name = ""
+    
         
 
     def build(self):        
@@ -71,15 +72,16 @@ class Essentials(MDApp):
                         """)
         cursor.execute("""
                     CREATE TABLE IF NOT EXISTS statistic (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id INTEGER NOT NULL,
-                        hobby_name TEXT NOT NULL,
-                        unit_measure TEXT,
-                        goal REAL,                    
-                        progress REAL,
-                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        created_date TEXT GENERATED ALWAYS AS (date(created_at)) VIRTUAL,
-                        UNIQUE(user_id, hobby_name, created_date)
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    hobby_name TEXT NOT NULL,
+                    unit_measure TEXT,
+                    goal REAL,
+                    progress REAL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME,
+                    created_date TEXT GENERATED ALWAYS AS (date(created_at)) VIRTUAL,
+                    UNIQUE(user_id, hobby_name, created_date)
                             )
                         """)
 
@@ -281,7 +283,11 @@ class SignupScreen(Screen):
         self.ids.user_birthday.text = ""
 
 class HomeScreen(Screen):
-    pass
+    def on_enter(self):
+        acess = MDApp.get_running_app()
+        storage_updating = acess.root.get_screen("hobbies_list")     
+        storage_updating.storage_hobby() 
+        
 
 class HobbyScreen(Screen):
     def clear_fields_hobby(self):
@@ -521,7 +527,7 @@ class HobbiesListScreen(Screen):
         except Exception as e:
             print(f"Error!")
 
-    def storage_hobby(self):        
+    def storage_hobby(self):                
         acess = MDApp.get_running_app()
         user_id = acess.current_user_id
         center_time = pytz.timezone("America/Chicago")
@@ -552,12 +558,6 @@ class HobbiesListScreen(Screen):
                         """, (reset_progress, user_id, hobby_name))
                         conn.commit()
             
-           
-
-        
-
-
-        
         
 
 Essentials().run()  

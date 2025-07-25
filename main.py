@@ -17,6 +17,8 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.fitimage import FitImage
 import pytz
 
+from kivy.animation import Animation
+from random import randint
 
 
 
@@ -306,11 +308,9 @@ class HobbiesListScreen(Screen):
         self.no_hobbies_label = None
         self.progress_capture = None
         self.progress = 0
-            
-    
 
     def progress_updating(self, hobby_name, progress_capture, label_1, progress_bar, goal, unit_measure, percentage):
-        acess = MDApp.get_running_app()
+        acess = MDApp.get_running_app()        
         user_id = acess.current_user_id
         text = progress_capture.text.strip()
         time_now = datetime.now(ZoneInfo("America/Chicago")).date()
@@ -361,6 +361,9 @@ class HobbiesListScreen(Screen):
 
         
         progress_capture.text = ""
+
+        if self.progress >= goal:
+            self.show_star_celebration()
 
         
 
@@ -533,8 +536,7 @@ class HobbiesListScreen(Screen):
 
     def storage_hobby(self):                
         acess = MDApp.get_running_app()
-        user_id = acess.current_user_id
-        center_time = pytz.timezone("America/Chicago")
+        user_id = acess.current_user_id        
         time_now = datetime.now(ZoneInfo("America/Chicago")).date()
         reset_progress = 0
 

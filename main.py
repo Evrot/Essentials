@@ -65,6 +65,7 @@ class Essentials(MDApp):
                     unit_measure TEXT,
                     goal REAL,                    
                     progress REAL,
+                    updated_at DATETIME,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id),
                     UNIQUE(user_id, hobby_name)
@@ -78,8 +79,8 @@ class Essentials(MDApp):
                     unit_measure TEXT,
                     goal REAL,
                     progress REAL,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,                    
                     created_date TEXT GENERATED ALWAYS AS (date(created_at)) VIRTUAL,
                     UNIQUE(user_id, hobby_name, created_date)
                             )
@@ -305,58 +306,61 @@ class HobbiesListScreen(Screen):
         self.no_hobbies_label = None
         self.progress_capture = None
         self.progress = 0
-        
+            
     
 
     def progress_updating(self, hobby_name, progress_capture, label_1, progress_bar, goal, unit_measure, percentage):
-            acess = MDApp.get_running_app()
-            user_id = acess.current_user_id
-            text = progress_capture.text.strip()            
-            if text == "":
-                return acess.show_popup("Don't forget to type in your progress first!", title="It's all good!") 
-            
-            try:
-                with sqlite3.connect("data/essentials_db.db") as conn:
-                    cursor = conn.cursor()
+        acess = MDApp.get_running_app()
+        user_id = acess.current_user_id
+        text = progress_capture.text.strip()
+        time_now = datetime.now(ZoneInfo("America/Chicago")).date()
+        if text == "":
+            return acess.show_popup("Don't forget to type in your progress first!", title="It's all good!") 
+        
+        try:
+            with sqlite3.connect("data/essentials_db.db") as conn:
+                cursor = conn.cursor()
 
-                    cursor.execute("""
-                        SELECT progress
-                        FROM hobbies
-                        WHERE user_id = ? AND hobby_name = ?
-                    """, (user_id, hobby_name))
-                    result = cursor.fetchone()                    
-                    hobby_progress = result[0]
+                cursor.execute("""
+                    SELECT progress
+                    FROM hobbies
+                    WHERE user_id = ? AND hobby_name = ?
+                """, (user_id, hobby_name))
+                result = cursor.fetchone()                    
+                hobby_progress = result[0]
 
-                if hobby_progress:
-                    hobby_progress += float(text)
-                    self.progress = hobby_progress                    
-                else:
-                    self.progress = float(text)
-            except ValueError:                
-                print("ERROR! Wrong value.")
-                return
-                       
-            
-            try:
-                with sqlite3.connect("data/essentials_db.db") as conn:
-                    cursor = conn.cursor()                   
-                    cursor.execute("""
-                        UPDATE hobbies
-                        SET progress = ?
-                        WHERE user_id = ? AND hobby_name = ?
-                    """, (self.progress, user_id, hobby_name))
-                    conn.commit()
-            except Exception as e:
-                print("ERROR! Wrong value.", e)
-                return
+            if hobby_progress:
+                hobby_progress += float(text)
+                self.progress = hobby_progress                    
+            else:
+                self.progress = float(text)  
+           
+                
+        except ValueError:                
+            print("ERROR! Wrong value.")
+            return
+                    
+        
+        try:
+            with sqlite3.connect("data/essentials_db.db") as conn:
+                cursor = conn.cursor()                   
+                cursor.execute("""
+                    UPDATE hobbies
+                    SET progress = ?, updated_at = ?
+                    WHERE user_id = ? AND hobby_name = ?
+                """, (self.progress, time_now, user_id, hobby_name))
+                conn.commit()
+        except Exception as e:
+            print("ERROR! Wrong value.", e)
+            return
 
-            
-            label_1.text = f"{self.progress:.2f}/{goal} {unit_measure}"
-            percentage.text = f"{(100*self.progress)/goal:.2f}%"
-            progress_bar.value = min((self.progress / goal) * 100, 100)
+        
+        label_1.text = f"{self.progress:.2f}/{goal} {unit_measure}"
+        percentage.text = f"{(100*self.progress)/goal:.2f}%"
+        progress_bar.value = min((self.progress / goal) * 100, 100)
 
-            
-            progress_capture.text = ""
+        
+        progress_capture.text = ""
 
         
 
@@ -525,7 +529,7 @@ class HobbiesListScreen(Screen):
             base_layout.add_widget(swiper)
             
         except Exception as e:
-            print(f"Error!")
+            print("Error!")
 
     def storage_hobby(self):                
         acess = MDApp.get_running_app()
@@ -537,27 +541,28 @@ class HobbiesListScreen(Screen):
 
         with sqlite3.connect("data/essentials_db.db") as conn:
             cursor = conn.cursor()
-            cursor.execute("""SELECT created_at, hobby_name FROM hobbies WHERE user_id =?""", (user_id,))
+            cursor.execute("""SELECT updated_at, hobby_name FROM hobbies WHERE user_id =?""", (user_id,))
             hobby_storage = cursor.fetchall()
-        
-            for created_at, hobby_name in hobby_storage:
-                conversion_datetime = datetime.strptime(created_at,"%Y-%m-%d %H:%M:%S")
-                utc_time = pytz.utc.localize(conversion_datetime)            
-                local_time = utc_time.astimezone(center_time).date()
-                           
-                if local_time != time_now:                    
-                        cursor.execute("""INSERT OR IGNORE INTO statistic (user_id, hobby_name, unit_measure, goal, progress, created_at)
-                                    SELECT user_id, hobby_name, unit_measure, goal, progress, created_at FROM hobbies
-                                    WHERE user_id = ? AND created_at = ?
-                                    """, (user_id, created_at)
-                                    )
-                        cursor.execute("""
-                            UPDATE hobbies
-                            SET progress = ?
-                            WHERE user_id = ? AND hobby_name = ?
-                        """, (reset_progress, user_id, hobby_name))
-                        conn.commit()
-            
+
+            try:
+                for updated_at, hobby_name in hobby_storage:
+                    conversion_datetime = datetime.strptime(updated_at,"%Y-%m-%d").date()
+                    
+                            
+                    if conversion_datetime != time_now:                    
+                            cursor.execute("""INSERT OR IGNORE INTO statistic (user_id, hobby_name, unit_measure, goal, progress, updated_at, created_at)
+                                        SELECT user_id, hobby_name, unit_measure, goal, progress, updated_at, created_at FROM hobbies
+                                        WHERE user_id = ? AND updated_at = ?
+                                        """, (user_id, updated_at)
+                                        )
+                            cursor.execute("""
+                                UPDATE hobbies
+                                SET progress = ?
+                                WHERE user_id = ? AND hobby_name = ?
+                            """, (reset_progress, user_id, hobby_name))
+                conn.commit()
+            except Exception as e:
+                print("That's fine!")
         
 
 Essentials().run()  

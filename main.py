@@ -15,9 +15,12 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.progressbar import MDProgressBar
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.fitimage import FitImage
+from kivymd.uix.datatables import MDDataTable
+from kivy.metrics import dp
+
 import pytz
 
-from kivy.animation import Animation
+
 from random import randint
 
 
@@ -44,6 +47,7 @@ class Essentials(MDApp):
         sm.add_widget(HobbyScreen(name="hobby"))
         sm.add_widget(DeleteHobbyScreen(name="delete_hobby"))
         sm.add_widget(HobbiesListScreen(name="hobbies_list"))
+        sm.add_widget(StatsScreen(name="stats_screen"))
         return sm
     
     def create_user_table(self):
@@ -362,8 +366,7 @@ class HobbiesListScreen(Screen):
         
         progress_capture.text = ""
 
-        if self.progress >= goal:
-            self.show_star_celebration()
+        
 
         
 
@@ -498,7 +501,7 @@ class HobbiesListScreen(Screen):
             bg_image = FitImage(
                 source="images/essentials_logo_3.png",
                 size_hint=(None, None),
-                size=(200, 200),
+                size=(175, 175),
                 pos_hint={"center_x": 0.5, "center_y": 0.85},
                 radius=[40],  
             )
@@ -552,8 +555,8 @@ class HobbiesListScreen(Screen):
                     
                             
                     if conversion_datetime != time_now:                    
-                            cursor.execute("""INSERT OR IGNORE INTO statistic (user_id, hobby_name, unit_measure, goal, progress, updated_at, created_at)
-                                        SELECT user_id, hobby_name, unit_measure, goal, progress, updated_at, created_at FROM hobbies
+                            cursor.execute("""INSERT OR IGNORE INTO statistic (user_id, hobby_name, unit_measure, goal, progress, updated_at)
+                                        SELECT user_id, hobby_name, unit_measure, goal, progress, updated_at FROM hobbies
                                         WHERE user_id = ? AND updated_at = ?
                                         """, (user_id, updated_at)
                                         )
@@ -565,6 +568,79 @@ class HobbiesListScreen(Screen):
                 conn.commit()
             except Exception as e:
                 print("That's fine!")
+
+class StatsScreen(Screen):
+    # Creating the MDDataTable
+    def creating_table(self):        
+        acess = MDApp.get_running_app()       
+
+        table = MDDataTable(
+            pos_hint = {"center_x": 0.5, "center_y": 0.38},
+            size_hint = (0.9, 0.68),            
+            column_data = [
+                (".", dp(35)),
+                (".", dp(35)),
+                (".", dp(35)),
+                (".", dp(35))
+            ],
+            row_data = []
+        )
+
+        title_1 = Label(
+            text="Hobby",
+                halign="center",                
+                size_hint=(.8, None),
+                pos_hint={"center_y": 0.65, "center_x": 0.12},            
+                font_name="fonts/pixelify_bold.ttf",            
+                color=(0, 0, 0, 1),
+                font_size=30,
+
+        )
+        title_2 = Label(
+            text="Unit Measure",
+                halign="center",                
+                size_hint=(.8, None),
+                pos_hint={"center_y": 0.65, "center_x": 0.32},            
+                font_name="fonts/pixelify_bold.ttf",            
+                color=(0, 0, 0, 1),
+                font_size=30,
+
+        )
+        title_3 = Label(
+            text="Average per day",
+                halign="center",                
+                size_hint=(.8, None),
+                pos_hint={"center_y": 0.65, "center_x": 0.55},            
+                font_name="fonts/pixelify_bold.ttf",            
+                color=(0, 0, 0, 1),
+                font_size=30,
+
+        )
+        title_4 = Label(
+            text="Days practiced",
+                halign="center",                
+                size_hint=(.8, None),
+                pos_hint={"center_y": 0.65, "center_x": 0.80},            
+                font_name="fonts/pixelify_bold.ttf",            
+                color=(0, 0, 0, 1),
+                font_size=30,
+
+        )
+        stats_base = acess.root.get_screen("stats_screen").ids.stats_base
+        stats_base.add_widget(table)
+        stats_base.add_widget(title_1)
+        stats_base.add_widget(title_2)
+        stats_base.add_widget(title_3)
+        stats_base.add_widget(title_4)
+
+
         
+            
+
+
+
+        
+    
+     
 
 Essentials().run()  

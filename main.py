@@ -15,8 +15,10 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.progressbar import MDProgressBar
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.fitimage import FitImage
-from kivymd.uix.datatables import MDDataTable
+from kivymd.uix.gridlayout import MDGridLayout
 from kivy.metrics import dp
+from kivy.uix.scrollview import ScrollView
+from collections import defaultdict
 
 import pytz
 
@@ -24,6 +26,9 @@ import pytz
 from random import randint
 
 
+
+Window.minimum_width, Window.minimum_height = (800, 600)
+Window.maximum_width, Window.maximum_height = (800, 600)
 
 Window.set_icon("images/icon_window.png")
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
@@ -434,9 +439,8 @@ class HobbiesListScreen(Screen):
             card_layout = MDFloatLayout()
 
             card = MDCard(
-                size_hint=(None, None),
-                size=(Window.width * 0.4, Window.height * 0.55),
-                pos_hint={"center_x": 0.5, "center_y": 0.5},
+                size_hint=(0.5, 0.9),
+                pos_hint={"center_x": 0.5, "center_y": 0.47},
                 md_bg_color=(0.902, 0.941, 0.941, 1),
                 radius=[30],
                 elevation=2,
@@ -501,7 +505,7 @@ class HobbiesListScreen(Screen):
             bg_image = FitImage(
                 source="images/essentials_logo_3.png",
                 size_hint=(None, None),
-                size=(175, 175),
+                size=(dp(130), dp(130)),
                 pos_hint={"center_x": 0.5, "center_y": 0.85},
                 radius=[40],  
             )
@@ -570,68 +574,107 @@ class HobbiesListScreen(Screen):
                 print("That's fine!")
 
 class StatsScreen(Screen):
-    # Creating the MDDataTable
-    def creating_table(self):        
-        acess = MDApp.get_running_app()       
+    # Creating stats table
+    def creating_table(self):
+        data = []             
+        acess = MDApp.get_running_app()
+        user_id = acess.current_user_id
+        scroll = ScrollView(
+            pos_hint = {"center_x": 0.5, "center_y": 0.40},
+            size_hint = (0.9, 0.75)            
+        )               
 
-        table = MDDataTable(
-            pos_hint = {"center_x": 0.5, "center_y": 0.38},
-            size_hint = (0.9, 0.68),            
-            column_data = [
-                (".", dp(35)),
-                (".", dp(35)),
-                (".", dp(35)),
-                (".", dp(35))
-            ],
-            row_data = []
+        #Creating gridlayout
+        table = MDGridLayout(
+            cols = 6,
+            spacing = 10,
+            padding = 10,
+            md_bg_color = (0.902, 0.941, 0.941, 1),
+            radius = [30],           
         )
+        num_rows = len(table.children) // table.cols
+        if num_rows < 10:
+            table.size_hint_y = 1
+        else:
+            table.size_hint_y = None
+            table.bind(minimum_height=table.setter('height'))
 
-        title_1 = Label(
-            text="Hobby",
-                halign="center",                
-                size_hint=(.8, None),
-                pos_hint={"center_y": 0.65, "center_x": 0.12},            
+        stats_base = acess.root.get_screen("stats_screen").ids.stats_base #Getting acess to MDFloatLayout in .kv
+        stats_base.add_widget(scroll) #Adding scrollview to the acess
+        scroll.add_widget(table) #Adding MDGridLayout to scrollview
+
+        #Adding headers to MDGridLayout
+        headers = ("Hobby", "Unit Measure", "Total", "Days", "Success Days", "Average Per Day")
+        for header in headers:
+            table.add_widget(Label(
+                text= header,
+                size_hint_y = None,
+                halign = "center",
+                valign = "middle",
+                height = 50,
+                bold = True,
                 font_name="fonts/pixelify_bold.ttf",            
                 color=(0, 0, 0, 1),
-                font_size=30,
+                font_size=22,
+                text_size = (None, None)
+            ))
+        
 
-        )
-        title_2 = Label(
-            text="Unit Measure",
-                halign="center",                
-                size_hint=(.8, None),
-                pos_hint={"center_y": 0.65, "center_x": 0.32},            
-                font_name="fonts/pixelify_bold.ttf",            
-                color=(0, 0, 0, 1),
-                font_size=30,
+        #Pulling information from stats db
+        with sqlite3.connect("data/essentials_db.db") as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT hobby_name, unit_measure, goal, progress FROM statistic WHERE user_id = ?", (user_id,))
+            raw_data = cursor.fetchall()
 
-        )
-        title_3 = Label(
-            text="Average per day",
-                halign="center",                
-                size_hint=(.8, None),
-                pos_hint={"center_y": 0.65, "center_x": 0.55},            
-                font_name="fonts/pixelify_bold.ttf",            
-                color=(0, 0, 0, 1),
-                font_size=30,
+        for entry in raw_data:
+            success_days = 0
+            if entry[3] >= entry[2]:
+                success_days = 1
+            data.append([*entry, success_days])
 
-        )
-        title_4 = Label(
-            text="Days practiced",
-                halign="center",                
-                size_hint=(.8, None),
-                pos_hint={"center_y": 0.65, "center_x": 0.80},            
-                font_name="fonts/pixelify_bold.ttf",            
-                color=(0, 0, 0, 1),
-                font_size=30,
+        hobby_summary = defaultdict(lambda: [0.0, 0, 0, 0.0])
 
-        )
-        stats_base = acess.root.get_screen("stats_screen").ids.stats_base
-        stats_base.add_widget(table)
-        stats_base.add_widget(title_1)
-        stats_base.add_widget(title_2)
-        stats_base.add_widget(title_3)
-        stats_base.add_widget(title_4)
+        for item in data:
+            name_key = (item[0], item[1])  
+            hobby_summary[name_key][0] += item[3]
+            hobby_summary[name_key][1] += 1   
+            hobby_summary[name_key][2] += item[4]  
+            hobby_summary[name_key][3] = round((hobby_summary[name_key][0]/ hobby_summary[name_key][1]), 2)
+
+        calculated_table = [[name, unit, round(total_progress, 2), days, days_success, avg_day] for (name, unit), (total_progress, days, days_success, avg_day) in hobby_summary.items()]
+
+        for user_info in calculated_table:
+            for cell in user_info:
+                table.add_widget(Label(
+                    text= str(cell),
+                    size_hint_y = None,
+                    halign = "center",
+                    valign = "middle",
+                    height = 40,                    
+                    font_name="fonts/pixelify_bold.ttf",            
+                    color=(0, 0, 0, 1),
+                    font_size=20,
+                    text_size = (None, None)
+                ))
+
+                
+
+        
+        
+
+
+
+        
+        
+        
+
+        
+
+            
+
+
+
+
 
 
         

@@ -210,6 +210,8 @@ class Essentials(MDApp):
         hobby = hobby_screen.ids.user_hobby.text.strip().title()
         unit_measure = hobby_screen.ids.user_measure_hobby.text.strip().title()
         goal = hobby_screen.ids.user_hobby_goal.text.strip()
+        progress = 0.0
+        updated_at = datetime.now(ZoneInfo("America/Chicago")).date()
         user_id = self.current_user_id
 
         if not hobby or not unit_measure or not goal:
@@ -230,9 +232,9 @@ class Essentials(MDApp):
                 
             else:
                 cursor.execute("""
-                    INSERT OR IGNORE INTO hobbies (user_id, hobby_name, unit_measure, goal)
-                    VALUES (?, ?, ?, ?)
-                """, (user_id, hobby, unit_measure, goal))
+                    INSERT OR IGNORE INTO hobbies (user_id, hobby_name, unit_measure, goal, progress, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (user_id, hobby, unit_measure, goal, progress, updated_at))
 
                 conn.commit()
                 conn.close()
@@ -259,6 +261,7 @@ class Essentials(MDApp):
         if hobby_check:
             try:   
                 cursor.execute("DELETE FROM hobbies WHERE user_id = ? and hobby_name = ?", (user_id, hobby_to_delete))
+                cursor.execute("DELETE FROM statistic WHERE user_id = ? AND hobby_name = ?", (user_id, hobby_to_delete))
                 conn.commit()                                
                 self.show_popup(f"{hobby_to_delete} was successfully deleted!")                
                 delete_screen.clear_fields_delete()
@@ -589,7 +592,7 @@ class StatsScreen(Screen):
             cols = 6,
             spacing = 10,
             padding = 10,
-            md_bg_color = (0.902, 0.941, 0.941, 1),
+            md_bg_color = (0.5, 0.8, 0.5, 0.3),
             radius = [30],           
         )
         num_rows = len(table.children) // table.cols
@@ -604,7 +607,7 @@ class StatsScreen(Screen):
         scroll.add_widget(table) #Adding MDGridLayout to scrollview
 
         #Adding headers to MDGridLayout
-        headers = ("Hobby", "Unit Measure", "Total", "Days", "Success Days", "Average Per Day")
+        headers = ("HOBBY", "UNIT MEASURE", "TOTAL", "DAYS", "SUCCESS DAYS", "AVERAGE PER DAY")
         for header in headers:
             table.add_widget(Label(
                 text= header,
@@ -613,9 +616,9 @@ class StatsScreen(Screen):
                 valign = "middle",
                 height = 50,
                 bold = True,
-                font_name="fonts/pixelify_bold.ttf",            
+                font_name="fonts/jersey_25.ttf",            
                 color=(0, 0, 0, 1),
-                font_size=22,
+                font_size=dp(17),
                 text_size = (None, None)
             ))
         
@@ -651,39 +654,11 @@ class StatsScreen(Screen):
                     halign = "center",
                     valign = "middle",
                     height = 40,                    
-                    font_name="fonts/pixelify_bold.ttf",            
+                    font_name="fonts/jersey_25.ttf",            
                     color=(0, 0, 0, 1),
-                    font_size=20,
+                    font_size=dp(15),
                     text_size = (None, None)
-                ))
-
-                
-
-        
-        
-
-
-
-        
-        
-        
-
-        
-
-            
-
-
-
-
-
-
-        
-            
-
-
-
-        
+                ))  
     
-     
 
 Essentials().run()  

@@ -7,6 +7,8 @@ ScreenManager:
         DeleteHobbyScreen:
         HobbiesListScreen:
         StatsScreen:
+        ForgotPasswordScreen:
+        CodeScreen:
 
 
 <LoginScreen>:
@@ -95,6 +97,7 @@ ScreenManager:
                 text_color: 0.5, 0.8, 0.5, 1
                 ripple_scale: 0
                 elevation: 0
+                on_release: app.root.current = "forgot_pass_screen"
             
         MDFlatButton:
                 id: new_account
@@ -590,10 +593,7 @@ ScreenManager:
                                 app.root.current = "home"
 
                                 
-                MDSwiper:       
-                        id: swiper                
-                        size_hint: 0.9, 0.6
-                        pos_hint: {"center_x": 0.5, "center_y": 0.40}           
+                       
         
 
 <StatsScreen>:
@@ -630,4 +630,144 @@ ScreenManager:
                                 app.root.current = "home"
 
 
+<ForgotPasswordScreen>:
+        name: "forgot_pass_screen"        
+        MDFloatLayout:
+                orientation: "vertical"
+                Image:
+                        source: "images/background_3.png"
+                        anim_delay: 0.05
+                        allow_stretch: True
+                        keep_ratio: False
+                        size_hint: 1, 1
+                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+                Label:
+                        text: "Please type your email so we can help you \nget back to tracking your hobbies!"
+                        halign: "center"
+                        valign: "top"
+                        size_hint: .8, None
+                        pos_hint: {"top": 0.8, "center_x": 0.5}
+                        font_name: "fonts/pixelify_bold.ttf"
+                        font_size: "20sp"
+                        color: 0, 0, 0, 1
+
                 
+                        
+                MDTextField:
+                        id: forgot_pass_user_mail                
+                        hint_text: "E-mail"
+                        helper_text: "(e.g., your account email.)"
+                        helper_text_mode: "on_focus"
+                        max_text_length: 10
+                        icon_left: "email"
+                        icon_left_color_focus: 0.5, 0.8, 0.5, 1
+                        size_hint: .35, None
+                        height: "48dp"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.55}
+                        font_name: "fonts/pixelify_bold.ttf"
+                        theme_text_color: "Custom"
+                        text_color_focus: 0, 0, 0, 1
+                        text_color: 0, 0, 0, 1
+                        hint_text_color_focus: 0.5, 0.5, 0.5, 1
+                        hint_text_color_normal: 0.7, 0.7, 0.7, 1
+                        line_color_focus: 0.5, 0.8, 0.5, 1
+                        line_color_normal: 0.7, 0.7, 0.7, 1
+                        cursor_color: 0.5, 0.8, 0.5, 1
+                        on_text: app.limit_field_length(self, self.text, 150)
+                        max_text_length: 150
+                        
+
+                
+
+                MDFlatButton:                
+                        text: "Submit!"
+                        size_hint: .2, None
+                        height: "48dp"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.45}
+                        font_name: "fonts/pixelify_bold.ttf"
+                        md_bg_color: 0.5, 0.8, 0.5, 1
+                        theme_text_color: "Custom"
+                        text_color: 1, 1, 1, 1
+                        on_release: app.root.get_screen("forgot_pass_screen").checking_email()
+                        
+
+        MDIconButton:
+                icon: "arrow-left-bold"
+                icon_size: "20sp"
+                pos_hint: {"x": 0.015, "top": 0.97}
+                md_bg_color: 0, 0, 0, 0
+                theme_text_color: "Custom"
+                text_color: 0.5, 0.8, 0.5, 1               
+                on_release: app.root.current = "login"
+
+<CodeScreen>:
+        name: "code_screen"
+        MDFloatLayout:
+                orientation: "vertical"
+                Image:
+                        source: "images/background_3.png"
+                        anim_delay: 0.05
+                        allow_stretch: True
+                        keep_ratio: False
+                        size_hint: 1, 1
+                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+                Label:
+                        text: "Please type in the code that we sent to your email!"
+                        halign: "center"
+                        valign: "top"
+                        size_hint: .8, None
+                        pos_hint: {"top": 0.8, "center_x": 0.5}
+                        font_name: "fonts/pixelify_bold.ttf"
+                        font_size: "20sp"
+                        color: 0, 0, 0, 1
+
+                
+                        
+                MDTextField:
+                        id: forgot_pass_user_mail                
+                        hint_text: "Code"
+                        helper_text: "(e.g., 6-digit code we sent you via email.)"
+                        helper_text_mode: "on_focus"
+                        max_text_length: 10
+                        icon_left: "key-chain"
+                        icon_left_color_focus: 0.5, 0.8, 0.5, 1
+                        size_hint: .35, None
+                        height: "48dp"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.55}
+                        font_name: "fonts/pixelify_bold.ttf"
+                        theme_text_color: "Custom"
+                        text_color_focus: 0, 0, 0, 1
+                        text_color: 0, 0, 0, 1
+                        hint_text_color_focus: 0.5, 0.5, 0.5, 1
+                        hint_text_color_normal: 0.7, 0.7, 0.7, 1
+                        line_color_focus: 0.5, 0.8, 0.5, 1
+                        line_color_normal: 0.7, 0.7, 0.7, 1
+                        cursor_color: 0.5, 0.8, 0.5, 1
+                        on_text: app.limit_field_length(self, self.text, 6)
+                        max_text_length: 6
+                        
+
+                
+
+                MDFlatButton:                
+                        text: "Submit!"
+                        size_hint: .2, None
+                        height: "48dp"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.45}
+                        font_name: "fonts/pixelify_bold.ttf"
+                        md_bg_color: 0.5, 0.8, 0.5, 1
+                        theme_text_color: "Custom"
+                        text_color: 1, 1, 1, 1
+                        
+                        
+
+        MDIconButton:
+                icon: "arrow-left-bold"
+                icon_size: "20sp"
+                pos_hint: {"x": 0.015, "top": 0.97}
+                md_bg_color: 0, 0, 0, 0
+                theme_text_color: "Custom"
+                text_color: 0.5, 0.8, 0.5, 1               
+                on_release: app.root.current = "forgot_pass_screen"

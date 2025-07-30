@@ -19,6 +19,9 @@ from kivymd.uix.gridlayout import MDGridLayout
 from kivy.metrics import dp
 from kivy.uix.scrollview import ScrollView
 from collections import defaultdict
+import random
+import string
+
 
 import pytz
 
@@ -53,6 +56,8 @@ class Essentials(MDApp):
         sm.add_widget(DeleteHobbyScreen(name="delete_hobby"))
         sm.add_widget(HobbiesListScreen(name="hobbies_list"))
         sm.add_widget(StatsScreen(name="stats_screen"))
+        sm.add_widget(ForgotPasswordScreen(name="forgot_pass_screen"))
+        sm.add_widget(CodeScreen(name="code_screen"))
         return sm
     
     def create_user_table(self):
@@ -66,7 +71,8 @@ class Essentials(MDApp):
                     birthday DATE NOT NULL,
                     password_hash TEXT NOT NULL,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    updated_at DATETIME)
+                    updated_at DATETIME,
+                    recovery_code TEXT)
                        """)
         cursor.execute("""
                     CREATE TABLE IF NOT EXISTS hobbies (
@@ -573,8 +579,8 @@ class HobbiesListScreen(Screen):
                                 WHERE user_id = ? AND hobby_name = ?
                             """, (reset_progress, user_id, hobby_name))
                 conn.commit()
-            except Exception as e:
-                print("That's fine!")
+            except Exception as e:                
+                acess.show_popup("Something went wrong. Try again.", title="Oops!")
 
 class StatsScreen(Screen):
     # Creating stats table
@@ -659,6 +665,81 @@ class StatsScreen(Screen):
                     font_size=dp(15),
                     text_size = (None, None)
                 ))  
-    
+
+class ForgotPasswordScreen(Screen):
+    def checking_email(self):
+        acess = MDApp.get_running_app()
+        acess_forgot_screen = acess.root.get_screen("forgot_pass_screen")
+        email = acess_forgot_screen.ids.forgot_pass_user_mail.text.strip().lower()
+
+        if email == "":
+            return acess.show_popup("Please type your email before submit it!", title="Hey")
+        
+        try:
+            with sqlite3.connect("data/essentials_db.db") as conn:
+                cursor = conn.cursor()
+                cursor.execute("""SELECT email FROM users WHERE email = ?""", (email,))
+                email_exist = cursor.fetchone()
+
+            if email_exist:
+                code_screen = acess.root.get_screen("code_screen")
+                code_screen.user_email = email
+                code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+                with sqlite3.connect("data/essentials_db.db") as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""UPDATE users SET recovery_code =? WHERE email = ?""", (code, email))
+                    conn.commit()
+
+                acess.root.current = "code_screen"
+                
+                acess_forgot_screen.ids.forgot_pass_user_mail.text = ""
+            else:
+                acess.show_popup("Sorry the email you typed doesn't exist.", title="Wow!")
+
+        except Exception as e:
+            acess_forgot_screen.ids.forgot_pass_user_mail.text = ""
+            print(f"Error during email checking: {e}")
+            acess.show_popup("Something went wrong. Try again.", title="Oops!")
+
+class CodeScreen(Screen):
+    def sending_code(self):
+        email = getattr(self, "user_email", None)
+        acess = MDApp.get_running_app()        
+        code = self.ids.code_mailed.text
+        attemps_code = 0
+
+        if not email:
+            acess.show_popup("No email found. Please retry.", title="Error")
+            return
+
+        try:
+            with sqlite3.connect("data/essentials_db.db") as conn:
+                cursor = conn.cursor()
+                cursor.execute("""SELECT recovery_code FROM users WHERE email=?""", (email,))
+                row = cursor.fetchone()
+
+            if row is None:
+                acess.show_popup("No recovery code found. Please try again.", title="Error")
+                return
+            
+            code_from_db = row[0]
+            if code == code_from_db:
+                #go to reset password screen
+                pass
+            else:
+                attemps_code += 1
+                if attemps_code >= 3:
+                     acess.show_popup("Too many incorrect tries. Please request a new code.", title="Locked Out")
+                else:
+                    acess.show_popup("Sorry, the code you typed is wrong. Please double-check your email.", title="Oops!")
+
+        except Exception:           
+            acess.show_popup("Something went wrong. Try again.", title="Oops!")
+
+
+
+
+
 
 Essentials().run()  

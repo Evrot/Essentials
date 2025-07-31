@@ -16,7 +16,7 @@ from kivymd.uix.progressbar import MDProgressBar
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.fitimage import FitImage
 from kivymd.uix.gridlayout import MDGridLayout
-from kivy.metrics import dp
+from kivy.metrics import dp, sp
 from kivy.uix.scrollview import ScrollView
 from collections import defaultdict
 import random
@@ -33,7 +33,7 @@ from random import randint
 Window.minimum_width, Window.minimum_height = (800, 600)
 Window.maximum_width, Window.maximum_height = (800, 600)
 
-Window.set_icon("images/icon_window.png")
+
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 
@@ -461,9 +461,9 @@ class HobbiesListScreen(Screen):
                 halign="center",                
                 size_hint=(.8, None),
                 pos_hint={"center_y": 0.6, "center_x": 0.5},            
-                font_name="fonts/pixelify_bold.ttf",            
+                font_name="fonts/jersey_25.ttf",            
                 color=(0, 0, 0, 1),
-                font_size=30,           
+                font_size=sp(25),           
             )            
             
             percentage_field = Label(
@@ -471,8 +471,8 @@ class HobbiesListScreen(Screen):
                 size_hint = (0.1, None),
                 pos_hint={"center_y": 0.5, "center_x": 0.9},
                 color = (0, 0, 0, 1),
-                font_size = 23,
-                font_name="fonts/pixelify_bold.ttf"
+                font_size = sp(20),
+                font_name="fonts/jersey_25.ttf"
             )
 
             label_1 = Label(
@@ -480,16 +480,16 @@ class HobbiesListScreen(Screen):
                 halign="center",               
                 size_hint=(0.8, None),
                 pos_hint={"center_y": 0.4, "center_x": 0.5},            
-                font_name="fonts/pixelify_bold.ttf",            
+                font_name="fonts/jersey_25.ttf",            
                 color=(0, 0, 0, 1),
-                font_size=25           
+                font_size=sp(20)           
             )
 
             progress_bar = MDProgressBar(                
                 size_hint = (0.6, None),
                 pos_hint = {"center_x": 0.5, "center_y": 0.5},                
                 max = 100,
-                height = 20,
+                height = 15,
                 radius = [10],
                 color = (0.5, 0.8, 0.5, 1),
                 value = min((progress / goal) * 100, 100)                
@@ -502,7 +502,7 @@ class HobbiesListScreen(Screen):
                 size = (115, 50),
                 pos_hint = {"center_y": 0.25, "center_x": 0.5},
                 font_size = 22,                                               
-                font_name="fonts/pixelify_bold.ttf",
+                font_name="fonts/jersey_25.ttf",
                 theme_text_color= "Custom",
                 line_color_focus= (0.5, 0.8, 0.5, 1),
                 line_color_normal= (0.5, 0.8, 0.5, 1),
@@ -511,19 +511,19 @@ class HobbiesListScreen(Screen):
             )
             progress_capture.bind(text=lambda instance, value: acess.limit_field_length(instance, value, 7))
             
-            bg_image = FitImage(
-                source="images/essentials_logo_3.png",
-                size_hint=(None, None),
-                size=(dp(130), dp(130)),
-                pos_hint={"center_x": 0.5, "center_y": 0.85},
-                radius=[40],  
-            )
+            # bg_image = FitImage(
+            #     source="images/essentials_logo_3.png",
+            #     size_hint=(None, None),
+            #     size=(dp(130), dp(130)),
+            #     pos_hint={"center_x": 0.5, "center_y": 0.85},
+            #     radius=[40],  
+            # )
             
 
             submit_progress = MDFlatButton(
-                text = "Add your progress!",               
+                text = "ADD YOUR PROGRESS!",               
                 size_hint = (0.4, None),
-                font_name="fonts/pixelify_bold.ttf",               
+                font_name="fonts/jersey_25.ttf",               
                 pos_hint= {"center_x": 0.5, "center_y": 0.10},
                 md_bg_color= (0.5, 0.8, 0.5, 1),
                 theme_text_color= "Custom",
@@ -532,7 +532,7 @@ class HobbiesListScreen(Screen):
             self.progress_updating(h, pc, l, pb, g, u, p),                
             )
             
-            card_layout.add_widget(bg_image)
+            # card_layout.add_widget(bg_image)
             card_layout.add_widget(submit_progress)
             card_layout.add_widget(progress_capture)
             card_layout.add_widget(percentage_field)                     
@@ -602,7 +602,7 @@ class StatsScreen(Screen):
             radius = [30],           
         )
         num_rows = len(table.children) // table.cols
-        if num_rows < 10:
+        if num_rows < 7:
             table.size_hint_y = 1
         else:
             table.size_hint_y = None
@@ -626,8 +626,8 @@ class StatsScreen(Screen):
                 color=(0, 0, 0, 1),
                 font_size=dp(17),
                 text_size = (None, None)
-            ))
-        
+            ))    
+
 
         #Pulling information from stats db
         with sqlite3.connect("data/essentials_db.db") as conn:
@@ -664,7 +664,10 @@ class StatsScreen(Screen):
                     color=(0, 0, 0, 1),
                     font_size=dp(15),
                     text_size = (None, None)
-                ))  
+                ))
+
+    def cleaning_table(self):
+        return
 
 class ForgotPasswordScreen(Screen):
     def checking_email(self):

@@ -9,6 +9,7 @@ ScreenManager:
         StatsScreen:
         ForgotPasswordScreen:
         CodeScreen:
+        ChangingPassScreen:
 
 
 <LoginScreen>:
@@ -41,7 +42,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.6}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color_focus: 0, 0, 0, 1
                 text_color: 0, 0, 0, 1
@@ -63,7 +64,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color: 0, 0, 0, 1
                 text_color_focus: 0, 0, 0, 1
@@ -78,11 +79,11 @@ ScreenManager:
 
         MDRaisedButton:
                 id: login_button
-                text: "Login"
+                text: "LOGIN"
                 size_hint: .2, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.35}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1                
                 on_release: app.login_authentification()
 
@@ -91,7 +92,7 @@ ScreenManager:
                 id: forgot_password_id
                 text: "Forgot ID/Password?"
                 pos_hint: {"center_x": 0.5, "center_y": 0.25}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 font_size: "14sp"
                 theme_text_color: "Custom"
                 text_color: 0.5, 0.8, 0.5, 1
@@ -103,7 +104,7 @@ ScreenManager:
                 id: new_account
                 text: "Create new account!"
                 pos_hint: {"center_x": 0.5, "center_y": 0.20}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 font_size: "14sp"
                 theme_text_color: "Custom"
                 text_color: 0.5, 0.8, 0.5, 1
@@ -128,7 +129,7 @@ ScreenManager:
                         valign: "top"
                         size_hint: .8, None
                         pos_hint: {"top": 0.9, "center_x": 0.5}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         font_size: "20sp"
                         color: 0, 0, 0, 1
 
@@ -138,7 +139,7 @@ ScreenManager:
                 size_hint: .25, None
                 height: "48dp"                
                 pos_hint: {"center_x": 0.5, "center_y": 0.65}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
@@ -152,7 +153,7 @@ ScreenManager:
                 size_hint: .25, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.55}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
@@ -170,7 +171,7 @@ ScreenManager:
                 size_hint: .25, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.45}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
@@ -183,7 +184,7 @@ ScreenManager:
                 size_hint: .25, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.35}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
@@ -198,12 +199,12 @@ ScreenManager:
                 size_hint: .25, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.13}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
-                on_press: app.root.get_screen("stats_screen").cleaning_table()
                 on_release: app.root.current = "login"
+                on_press: app.root.get_screen("stats_screen").cleaning_table()
 
 
 
@@ -224,7 +225,7 @@ ScreenManager:
                         valign: "top"
                         size_hint: .8, None
                         pos_hint: {"top": 0.9, "center_x": 0.5}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         font_size: "20sp"
                         color: 0, 0, 0, 1
             
@@ -245,7 +246,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.65}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color_focus: 0, 0, 0, 1
                 text_color: 0, 0, 0, 1
@@ -265,7 +266,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.55}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color_focus: 0, 0, 0, 1
                 text_color: 0, 0, 0, 1
@@ -286,7 +287,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.45}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color: 0, 0, 0, 1
                 text_color_focus: 0, 0, 0, 1
@@ -307,7 +308,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.35}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color: 0, 0, 0, 1
                 text_color_focus: 0, 0, 0, 1
@@ -327,7 +328,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.25}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color: 0, 0, 0, 1
                 text_color_focus: 0, 0, 0, 1
@@ -341,11 +342,11 @@ ScreenManager:
         
         MDFlatButton:
                 id: creating_account
-                text: "Join now!"
+                text: "JOIN NOW!"
                 size_hint: .2, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.12}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
@@ -371,7 +372,7 @@ ScreenManager:
                         valign: "top"
                         size_hint: .8, None
                         pos_hint: {"top": 0.9, "center_x": 0.5}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         font_size: "20sp"
                         color: 0, 0, 0, 1
 
@@ -381,7 +382,7 @@ ScreenManager:
                         valign: "top"
                         size_hint: .8, None
                         pos_hint: {"top": 0.7, "center_x": 0.5}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         font_size: "20sp"
                         color: 0, 0, 0, 1
                         
@@ -403,7 +404,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.50}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color_focus: 0, 0, 0, 1
                 text_color: 0, 0, 0, 1
@@ -425,7 +426,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.40}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color_focus: 0, 0, 0, 1
                 text_color: 0, 0, 0, 1
@@ -448,7 +449,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.30}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color_focus: 0, 0, 0, 1
                 text_color: 0, 0, 0, 1
@@ -463,11 +464,11 @@ ScreenManager:
 
         MDFlatButton:
                 id: creating_hobby
-                text: "Submit!"
+                text: "SUBMIT!"
                 size_hint: .2, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.15}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
@@ -491,7 +492,7 @@ ScreenManager:
                         valign: "top"
                         size_hint: .8, None
                         pos_hint: {"top": 0.9, "center_x": 0.5}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         font_size: "20sp"
                         color: 0, 0, 0, 1
         MDIconButton:
@@ -514,7 +515,7 @@ ScreenManager:
                 size_hint: .35, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.55}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 theme_text_color: "Custom"
                 text_color_focus: 0, 0, 0, 1
                 text_color: 0, 0, 0, 1
@@ -530,11 +531,11 @@ ScreenManager:
 
         MDFlatButton:
                 id: deleting_hobby
-                text: "Delete!"
+                text: "DELETE!"
                 size_hint: .2, None
                 height: "48dp"
                 pos_hint: {"center_x": 0.5, "center_y": 0.45}
-                font_name: "fonts/pixelify_bold.ttf"
+                font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
@@ -611,7 +612,7 @@ ScreenManager:
                         pos_hint: {"center_x": 0.5, "center_y": 0.5}
 
                 Label:                        
-                        text: "STATISTICS"
+                        text: "STATISTICS\n\n(Statistics for a hobby will only be available one day after it is added)"
                         halign: "center"
                         valign: "top"
                         size_hint: .8, None
@@ -649,7 +650,7 @@ ScreenManager:
                         valign: "top"
                         size_hint: .8, None
                         pos_hint: {"top": 0.8, "center_x": 0.5}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         font_size: "20sp"
                         color: 0, 0, 0, 1
 
@@ -666,7 +667,7 @@ ScreenManager:
                         size_hint: .35, None
                         height: "48dp"
                         pos_hint: {"center_x": 0.5, "center_y": 0.55}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         theme_text_color: "Custom"
                         text_color_focus: 0, 0, 0, 1
                         text_color: 0, 0, 0, 1
@@ -682,15 +683,15 @@ ScreenManager:
                 
 
                 MDFlatButton:                
-                        text: "Submit!"
+                        text: "SUBMIT!"
                         size_hint: .2, None
                         height: "48dp"
                         pos_hint: {"center_x": 0.5, "center_y": 0.45}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         md_bg_color: 0.5, 0.8, 0.5, 1
                         theme_text_color: "Custom"
-                        text_color: 1, 1, 1, 1
-                        on_release: app.root.get_screen("forgot_pass_screen").checking_email()
+                        text_color: 1, 1, 1, 1                        
+                        on_release: root.checking_email()
                         
 
         MDIconButton:
@@ -720,14 +721,14 @@ ScreenManager:
                         valign: "top"
                         size_hint: .8, None
                         pos_hint: {"top": 0.8, "center_x": 0.5}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         font_size: "20sp"
                         color: 0, 0, 0, 1
 
                 
                         
                 MDTextField:
-                        id: forgot_pass_user_mail                
+                        id: code_mailed                
                         hint_text: "Code"
                         helper_text: "(e.g., 6-digit code we sent you via email.)"
                         helper_text_mode: "on_focus"
@@ -737,7 +738,7 @@ ScreenManager:
                         size_hint: .35, None
                         height: "48dp"
                         pos_hint: {"center_x": 0.5, "center_y": 0.55}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         theme_text_color: "Custom"
                         text_color_focus: 0, 0, 0, 1
                         text_color: 0, 0, 0, 1
@@ -753,14 +754,16 @@ ScreenManager:
                 
 
                 MDFlatButton:                
-                        text: "Submit!"
+                        text: "SUBMIT!"
                         size_hint: .2, None
                         height: "48dp"
                         pos_hint: {"center_x": 0.5, "center_y": 0.45}
-                        font_name: "fonts/pixelify_bold.ttf"
+                        font_name: "fonts/jersey_25.ttf"
                         md_bg_color: 0.5, 0.8, 0.5, 1
                         theme_text_color: "Custom"
                         text_color: 1, 1, 1, 1
+                        on_release: root.validating_code()
+                        
                         
                         
 
@@ -772,3 +775,87 @@ ScreenManager:
                 theme_text_color: "Custom"
                 text_color: 0.5, 0.8, 0.5, 1               
                 on_release: app.root.current = "forgot_pass_screen"
+
+<ChangingPassScreen>:
+        name: "changing_password"
+        MDFloatLayout:
+                orientation: "vertical"
+                Image:
+                        source: "images/background_3.png"
+                        anim_delay: 0.05
+                        allow_stretch: True
+                        keep_ratio: False
+                        size_hint: 1, 1
+                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+                Label:
+                        text: "Please type your new password!"
+                        halign: "center"
+                        valign: "top"
+                        size_hint: .8, None
+                        pos_hint: {"top": 0.8, "center_x": 0.5}
+                        font_name: "fonts/jersey_25.ttf"
+                        font_size: "20sp"
+                        color: 0, 0, 0, 1
+
+                MDTextField:
+                        id: recovery_pass                        
+                        hint_text: "Password"
+                        icon_left: "lock"
+                        icon_left_color_focus: 0.5, 0.8, 0.5, 1
+                        password: True
+                        size_hint: .35, None
+                        height: "48dp"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.6}
+                        font_name: "fonts/jersey_25.ttf"
+                        theme_text_color: "Custom"
+                        text_color: 0, 0, 0, 1
+                        text_color_focus: 0, 0, 0, 1
+                        hint_text_color_focus: 0.5, 0.5, 0.5, 1
+                        hint_text_color_normal: 0.7, 0.7, 0.7, 1
+                        line_color_focus: 0.5, 0.8, 0.5, 1
+                        line_color_normal: 0.7, 0.7, 0.7, 1
+                        cursor_color: 0.5, 0.8, 0.5, 1
+                        on_text: app.limit_field_length(self, self.text, 64)
+                        max_text_length: 64
+
+                MDTextField:
+                        id: recovery_pass_confirm                        
+                        hint_text: "Confirm Password"
+                        icon_left: "lock-check"
+                        icon_left_color_focus: 0.5, 0.8, 0.5, 1
+                        password: True
+                        size_hint: .35, None
+                        height: "48dp"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                        font_name: "fonts/jersey_25.ttf"
+                        theme_text_color: "Custom"
+                        text_color: 0, 0, 0, 1
+                        text_color_focus: 0, 0, 0, 1
+                        hint_text_color_focus: 0.5, 0.5, 0.5, 1
+                        hint_text_color_normal: 0.7, 0.7, 0.7, 1
+                        line_color_focus: 0.5, 0.8, 0.5, 1
+                        line_color_normal: 0.7, 0.7, 0.7, 1
+                        cursor_color: 0.5, 0.8, 0.5, 1
+                        on_text: app.limit_field_length(self, self.text, 64)
+                        max_text_length: 64
+
+                MDFlatButton:                
+                        text: "SUBMIT!"
+                        size_hint: .2, None
+                        height: "48dp"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.4}
+                        font_name: "fonts/jersey_25.ttf"
+                        md_bg_color: 0.5, 0.8, 0.5, 1
+                        theme_text_color: "Custom"
+                        text_color: 1, 1, 1, 1
+                        on_release: root.double_checkingpass()                        
+
+        MDIconButton:
+                icon: "home"
+                icon_size: "20sp"
+                pos_hint: {"x": 0.015, "top": 0.97}
+                md_bg_color: 0, 0, 0, 0
+                theme_text_color: "Custom"
+                text_color: 0.5, 0.8, 0.5, 1               
+                on_release: app.root.current = "login"

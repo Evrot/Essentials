@@ -21,12 +21,11 @@ from kivy.uix.scrollview import ScrollView
 from collections import defaultdict
 import random
 import string
-
-
-import pytz
-
-
-from random import randint
+import smtplib
+from email.mime.text import MIMEText
+from dotenv import load_dotenv
+import os
+from kivy.clock import Clock
 
 
 
@@ -58,6 +57,7 @@ class Essentials(MDApp):
         sm.add_widget(StatsScreen(name="stats_screen"))
         sm.add_widget(ForgotPasswordScreen(name="forgot_pass_screen"))
         sm.add_widget(CodeScreen(name="code_screen"))
+        sm.add_widget(ChangingPassScreen(name="changing_password"))
         return sm
     
     def create_user_table(self):
@@ -110,14 +110,14 @@ class Essentials(MDApp):
     def show_popup(self, message, title="Hey!"):        
         popup = Popup(
             title=title,
-            title_font = "fonts/pixelify_bold.ttf",
+            title_font = "fonts/jersey_25.ttf",
             title_size = "20sp",
             title_color = (0.5, 0.8, 0.5, 1),
             title_align = "center",
             separator_color = (0, 0, 0, 0),
             content=Label(
                 text=message,
-                font_name="fonts/pixelify_bold.ttf",
+                font_name="fonts/jersey_25.ttf",
                 font_size="16sp",  
                 halign="center", valign="middle"
             ),
@@ -226,7 +226,7 @@ class Essentials(MDApp):
         
                 
         try:
-            conn = sqlite3.connect("data/essentials_db.db", timeout = 5)
+            conn = sqlite3.connect("data/essentials_db.db")
             cursor = conn.cursor()
             cursor.execute("""SELECT unit_measure, hobby_name, goal FROM hobbies WHERE user_id = ? AND hobby_name = ?  """, (user_id, hobby))
             existing = cursor.fetchone()
@@ -241,7 +241,6 @@ class Essentials(MDApp):
                     INSERT OR IGNORE INTO hobbies (user_id, hobby_name, unit_measure, goal, progress, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?)
                 """, (user_id, hobby, unit_measure, goal, progress, updated_at))
-
                 conn.commit()
                 conn.close()
 
@@ -386,33 +385,22 @@ class HobbiesListScreen(Screen):
 
 
     def showing_list(self):
-        acess = MDApp.get_running_app()              
-        hobbies_list_screen = acess.root.get_screen("hobbies_list")       
-        base_layout = hobbies_list_screen.ids.base  
+        acess = MDApp.get_running_app()         
+        base_layout = self.ids.base  
         user_id = acess.current_user_id
+        widgets_to_remove = []
         
                
-
+        
         with sqlite3.connect("data/essentials_db.db") as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT hobby_name, unit_measure, goal, progress FROM hobbies WHERE user_id = ?", (user_id,))
             hobbies_list = cursor.fetchall()
        
-        widgets_to_remove = []
+        
         for child in base_layout.children:           
             if isinstance(child, MDSwiper):
-                widgets_to_remove.append(child)                
-
-        for son in base_layout.children:
-            if son == self.no_hobbies_label and hobbies_list:
-                widgets_to_remove.append(son)
-                
-
-        for widget in widgets_to_remove:
-            try:
-                base_layout.remove_widget(widget)                
-            except Exception as e:
-                print(f"Error to remove the swiper")        
+                widgets_to_remove.append(child)              
 
         if not hobbies_list:
             self.no_hobbies_label = Label(                
@@ -421,133 +409,141 @@ class HobbiesListScreen(Screen):
                 valign="top",
                 size_hint=(.8, None),
                 pos_hint={"top": 0.6, "center_x": 0.5},            
-                font_name="fonts/pixelify_bold.ttf",            
+                font_name="fonts/jersey_25.ttf",            
                 color=(0, 0, 0, 1),
-                font_size=25,            
+                font_size=sp(20),            
             )
             base_layout.add_widget(self.no_hobbies_label)
-            return
-
-        
-        swiper = MDSwiper(
+        else:
+            if self.no_hobbies_label is not None and self.no_hobbies_label in base_layout.children:
+                    base_layout.remove_widget(self.no_hobbies_label)                    
+            swiper = MDSwiper(
             size_hint=(0.9, 0.6),
             pos_hint={"center_x": 0.5, "center_y": 0.40})        
 
         
-        for i in hobbies_list:
-            hobby = i[0]
-            unit_measure = i[1]
-            goal = i[2]
-            progress = i[3]
-            if progress == None:
-                progress = 0
-                      
-            
-            swiper_item = MDSwiperItem()
-            float_layout = MDFloatLayout()
-            card_layout = MDFloatLayout()
+            for i in hobbies_list:
+                hobby = i[0]
+                unit_measure = i[1]
+                goal = i[2]
+                progress = i[3]
+                if progress == None:
+                    progress = 0
+                        
+                
+                swiper_item = MDSwiperItem()
+                float_layout = MDFloatLayout()
+                card_layout = MDFloatLayout()
 
-            card = MDCard(
-                size_hint=(0.5, 0.9),
-                pos_hint={"center_x": 0.5, "center_y": 0.47},
-                md_bg_color=(0.902, 0.941, 0.941, 1),
-                radius=[30],
-                elevation=2,
-                shadow_color=(0.5, 0.8, 0.5, 1)
-            )
-            
-            label = Label(
-                text=hobby,
-                halign="center",                
-                size_hint=(.8, None),
-                pos_hint={"center_y": 0.6, "center_x": 0.5},            
-                font_name="fonts/jersey_25.ttf",            
-                color=(0, 0, 0, 1),
-                font_size=sp(25),           
-            )            
-            
-            percentage_field = Label(
-                text= f"{(100*progress)/goal:.2f}%",
-                size_hint = (0.1, None),
-                pos_hint={"center_y": 0.5, "center_x": 0.9},
-                color = (0, 0, 0, 1),
-                font_size = sp(20),
-                font_name="fonts/jersey_25.ttf"
-            )
+                card = MDCard(
+                    size_hint=(0.45 , 0.9),
+                    pos_hint={"center_x": 0.5, "center_y": 0.47},
+                    md_bg_color=(0.902, 0.941, 0.941, 1),
+                    radius=[30],
+                    elevation=2,
+                    shadow_color=(0.5, 0.8, 0.5, 1)
+                )
+                
+                label = Label(
+                    text=hobby,
+                    halign="center",                
+                    size_hint=(.8, None),
+                    pos_hint={"center_y": 0.6, "center_x": 0.5},            
+                    font_name="fonts/jersey_25.ttf",            
+                    color=(0, 0, 0, 1),
+                    font_size=sp(20),           
+                )            
+                
+                percentage_field = Label(
+                    text= f"{(100*progress)/goal:.2f}%",
+                    size_hint = (0.1, None),
+                    pos_hint={"center_y": 0.5, "center_x": 0.85},
+                    color = (0, 0, 0, 1),
+                    font_size = sp(15),
+                    font_name="fonts/jersey_25.ttf"
+                )
+                
+                label_1 = Label(
+                    text = f"{progress}/{goal} {unit_measure}",                
+                    halign="center",               
+                    size_hint=(0.8, None),
+                    pos_hint={"center_y": 0.4, "center_x": 0.5},            
+                    font_name="fonts/jersey_25.ttf",            
+                    color=(0, 0, 0, 1),
+                    font_size=sp(15)           
+                )
 
-            label_1 = Label(
-                text = f"{progress}/{goal} {unit_measure}",                
-                halign="center",               
-                size_hint=(0.8, None),
-                pos_hint={"center_y": 0.4, "center_x": 0.5},            
-                font_name="fonts/jersey_25.ttf",            
-                color=(0, 0, 0, 1),
-                font_size=sp(20)           
-            )
-
-            progress_bar = MDProgressBar(                
-                size_hint = (0.6, None),
-                pos_hint = {"center_x": 0.5, "center_y": 0.5},                
-                max = 100,
-                height = 15,
-                radius = [10],
-                color = (0.5, 0.8, 0.5, 1),
-                value = min((progress / goal) * 100, 100)                
-            )
-           
-
-            progress_capture = MDTextField(                
-                size_hint = (None, None),
-                input_filter = "float",
-                size = (115, 50),
-                pos_hint = {"center_y": 0.25, "center_x": 0.5},
-                font_size = 22,                                               
-                font_name="fonts/jersey_25.ttf",
-                theme_text_color= "Custom",
-                line_color_focus= (0.5, 0.8, 0.5, 1),
-                line_color_normal= (0.5, 0.8, 0.5, 1),
-                cursor_color= (0.5, 0.8, 0.5, 1),
-                text_color_focus= (0, 0, 0, 1),                                             
-            )
-            progress_capture.bind(text=lambda instance, value: acess.limit_field_length(instance, value, 7))
-            
-            # bg_image = FitImage(
-            #     source="images/essentials_logo_3.png",
-            #     size_hint=(None, None),
-            #     size=(dp(130), dp(130)),
-            #     pos_hint={"center_x": 0.5, "center_y": 0.85},
-            #     radius=[40],  
-            # )
+                progress_bar = MDProgressBar(                
+                    size_hint = (0.45, None),
+                    pos_hint = {"center_x": 0.5, "center_y": 0.5},                
+                    max = 100,
+                    height = 20,
+                    radius = [10],
+                    color = (0.5, 0.8, 0.5, 1),
+                    value = min((progress / goal) * 100, 100)                
+                )
             
 
-            submit_progress = MDFlatButton(
-                text = "ADD YOUR PROGRESS!",               
-                size_hint = (0.4, None),
-                font_name="fonts/jersey_25.ttf",               
-                pos_hint= {"center_x": 0.5, "center_y": 0.10},
-                md_bg_color= (0.5, 0.8, 0.5, 1),
-                theme_text_color= "Custom",
-                text_color= (1, 1, 1, 1),
-                on_press=lambda instance, h=hobby, pc=progress_capture, l=label_1, pb=progress_bar, g=goal, u=unit_measure, p=percentage_field: 
-            self.progress_updating(h, pc, l, pb, g, u, p),                
-            )
-            
-            # card_layout.add_widget(bg_image)
-            card_layout.add_widget(submit_progress)
-            card_layout.add_widget(progress_capture)
-            card_layout.add_widget(percentage_field)                     
-            card_layout.add_widget(progress_bar)
-            card_layout.add_widget(label_1)            
-            card_layout.add_widget(label)
-            card.add_widget(card_layout)                                   
-            float_layout.add_widget(card)            
-            swiper_item.add_widget(float_layout)            
-            swiper.add_widget(swiper_item)        
+                progress_capture = MDTextField(                
+                    size_hint = (None, None),
+                    input_filter = "float",
+                    size = (115, 50),
+                    pos_hint = {"center_y": 0.25, "center_x": 0.5},
+                    font_size = 22,                                               
+                    font_name="fonts/jersey_25.ttf",
+                    theme_text_color= "Custom",
+                    line_color_focus= (0.5, 0.8, 0.5, 1),
+                    line_color_normal= (0.5, 0.8, 0.5, 1),
+                    cursor_color= (0.5, 0.8, 0.5, 1),
+                    text_color_focus= (0, 0, 0, 1),                                             
+                )
+                progress_capture.bind(text=lambda instance, value: acess.limit_field_length(instance, value, 7))
+                
+                bg_image = FitImage(
+                    source="images/logo.png",
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150)),
+                    pos_hint={"center_x": 0.5, "center_y": 0.75}                    
+                )
+                
+
+                submit_progress = MDFlatButton(
+                    text = "ADD YOUR PROGRESS!",               
+                    size_hint = (0.4, None),
+                    font_name="fonts/jersey_25.ttf",               
+                    pos_hint= {"center_x": 0.5, "center_y": 0.10},
+                    md_bg_color= (0.5, 0.8, 0.5, 1),
+                    theme_text_color= "Custom",
+                    text_color= (1, 1, 1, 1),
+                    on_press=lambda instance, h=hobby, pc=progress_capture, l=label_1, pb=progress_bar, g=goal, u=unit_measure, p=percentage_field: 
+                self.progress_updating(h, pc, l, pb, g, u, p),                
+                )
+                
+                card_layout.add_widget(bg_image)
+                card_layout.add_widget(submit_progress)
+                card_layout.add_widget(progress_capture)
+                card_layout.add_widget(percentage_field)                     
+                card_layout.add_widget(progress_bar)
+                card_layout.add_widget(label_1)            
+                card_layout.add_widget(label)
+                card.add_widget(card_layout)                                   
+                float_layout.add_widget(card)            
+                swiper_item.add_widget(float_layout)            
+                swiper.add_widget(swiper_item)            
+        
+        
+                
+
+        for widget in widgets_to_remove:
+            try:
+                base_layout.remove_widget(widget)                               
+            except Exception:
+                print("Error to remove the swiper")                
         
         try:
             base_layout.add_widget(swiper)
             
-        except Exception as e:
+        except Exception:
             print("Error!")
 
     def storage_hobby(self):                
@@ -579,7 +575,7 @@ class HobbiesListScreen(Screen):
                                 WHERE user_id = ? AND hobby_name = ?
                             """, (reset_progress, user_id, hobby_name))
                 conn.commit()
-            except Exception as e:                
+            except Exception:                
                 acess.show_popup("Something went wrong. Try again.", title="Oops!")
 
 class StatsScreen(Screen):
@@ -595,10 +591,10 @@ class StatsScreen(Screen):
 
         #Creating gridlayout
         table = MDGridLayout(
-            cols = 6,
+            cols = 7,
             spacing = 10,
             padding = 10,
-            md_bg_color = (0.5, 0.8, 0.5, 0.3),
+            md_bg_color = (0.5, 0.8, 0.5, 0.2),
             radius = [30],           
         )
         num_rows = len(table.children) // table.cols
@@ -613,7 +609,7 @@ class StatsScreen(Screen):
         scroll.add_widget(table) #Adding MDGridLayout to scrollview
 
         #Adding headers to MDGridLayout
-        headers = ("HOBBY", "UNIT MEASURE", "TOTAL", "DAYS", "SUCCESS DAYS", "AVERAGE PER DAY")
+        headers = ("HOBBY", "UNIT MEASURE", "GOAL", "TOTAL", "DAYS", "SUCCESS DAYS", "AVERAGE PER DAY")
         for header in headers:
             table.add_widget(Label(
                 text= header,
@@ -624,56 +620,70 @@ class StatsScreen(Screen):
                 bold = True,
                 font_name="fonts/jersey_25.ttf",            
                 color=(0, 0, 0, 1),
-                font_size=dp(17),
+                font_size= sp(15),
                 text_size = (None, None)
             ))    
 
+        try:
+            #Pulling information from stats db
+            with sqlite3.connect("data/essentials_db.db") as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT hobby_name, unit_measure, goal, progress FROM statistic WHERE user_id = ?", (user_id,))
+                raw_data = cursor.fetchall()
 
-        #Pulling information from stats db
-        with sqlite3.connect("data/essentials_db.db") as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT hobby_name, unit_measure, goal, progress FROM statistic WHERE user_id = ?", (user_id,))
-            raw_data = cursor.fetchall()
+            if raw_data:
+                for entry in raw_data:
+                    success_days = 0
+                    if entry[3] >= entry[2]:
+                        success_days = 1
+                    data.append([*entry, success_days])
 
-        for entry in raw_data:
-            success_days = 0
-            if entry[3] >= entry[2]:
-                success_days = 1
-            data.append([*entry, success_days])
+                hobby_summary = defaultdict(lambda: [0.0, 0.0, 0, 0, 0.0])
 
-        hobby_summary = defaultdict(lambda: [0.0, 0, 0, 0.0])
+                for item in data:
+                    name_key = (item[0], item[1])
+                    hobby_summary[name_key][0] = item[2]  
+                    hobby_summary[name_key][1] += item[3]
+                    hobby_summary[name_key][2] += 1   
+                    hobby_summary[name_key][3] += item[4]  
+                    hobby_summary[name_key][4] = round((hobby_summary[name_key][1]/ hobby_summary[name_key][2]), 2)
 
-        for item in data:
-            name_key = (item[0], item[1])  
-            hobby_summary[name_key][0] += item[3]
-            hobby_summary[name_key][1] += 1   
-            hobby_summary[name_key][2] += item[4]  
-            hobby_summary[name_key][3] = round((hobby_summary[name_key][0]/ hobby_summary[name_key][1]), 2)
+                calculated_table = [[name, unit, goal, round(total_progress, 2), days, days_success, avg_day] for (name, unit), (goal, total_progress, days, days_success, avg_day) in hobby_summary.items()]
 
-        calculated_table = [[name, unit, round(total_progress, 2), days, days_success, avg_day] for (name, unit), (total_progress, days, days_success, avg_day) in hobby_summary.items()]
+                for user_info in calculated_table:
+                    for cell in user_info:
+                        table.add_widget(Label(
+                            text= str(cell),
+                            size_hint_y = None,
+                            halign = "center",
+                            valign = "middle",
+                            height = 40,                    
+                            font_name="fonts/jersey_25.ttf",            
+                            color=(0, 0, 0, 1),
+                            font_size=sp(15),
+                            text_size = (None, None)
+                        ))            
+        except Exception as e:
+            print("ERROR!", e)
+            
 
-        for user_info in calculated_table:
-            for cell in user_info:
-                table.add_widget(Label(
-                    text= str(cell),
-                    size_hint_y = None,
-                    halign = "center",
-                    valign = "middle",
-                    height = 40,                    
-                    font_name="fonts/jersey_25.ttf",            
-                    color=(0, 0, 0, 1),
-                    font_size=dp(15),
-                    text_size = (None, None)
-                ))
 
-    def cleaning_table(self):
-        return
+    def cleaning_table(self):        
+        statistic_base = self.ids.stats_base
+        try:        
+            for child in statistic_base.children[:]:           
+                if isinstance(child, ScrollView):
+                    statistic_base.remove_widget(child)
+        except Exception as e:
+            print("ERROR!", e)
+            return
 
 class ForgotPasswordScreen(Screen):
     def checking_email(self):
         acess = MDApp.get_running_app()
         acess_forgot_screen = acess.root.get_screen("forgot_pass_screen")
         email = acess_forgot_screen.ids.forgot_pass_user_mail.text.strip().lower()
+        
 
         if email == "":
             return acess.show_popup("Please type your email before submit it!", title="Hey")
@@ -686,13 +696,37 @@ class ForgotPasswordScreen(Screen):
 
             if email_exist:
                 code_screen = acess.root.get_screen("code_screen")
+                changing_pass = acess.root.get_screen("changing_password")
+                time_now = datetime.now().date().isoformat()
                 code_screen.user_email = email
+                changing_pass.user_email = email
                 code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
                 with sqlite3.connect("data/essentials_db.db") as conn:
                     cursor = conn.cursor()
-                    cursor.execute("""UPDATE users SET recovery_code =? WHERE email = ?""", (code, email))
+                    cursor.execute("""UPDATE users SET recovery_code =?, updated_at =? WHERE email = ?""", (code, time_now, email))
                     conn.commit()
+                
+                
+                
+                load_dotenv()                
+                username = os.getenv("SMTP_USERNAME")
+                password = os.getenv("SMTP_PASSWORD")
+                
+                
+                sender_email = "no-reply@essentials.local"
+                receiver_email = email
+                
+
+                message = MIMEText(f"Don't worry, we've got you! Here is your recovery code: {code}.\n Don't waste any more time—get back to tracking your hobbies!")
+                message["Subject"] = "Recovery Account!"
+                message["From"] = sender_email
+                message["To"] = receiver_email
+
+                with smtplib.SMTP("sandbox.smtp.mailtrap.io", 2525) as server:
+                    server.starttls()
+                    server.login(username, password)
+                    server.sendmail(sender_email, receiver_email, message.as_string())                 
 
                 acess.root.current = "code_screen"
                 
@@ -706,16 +740,25 @@ class ForgotPasswordScreen(Screen):
             acess.show_popup("Something went wrong. Try again.", title="Oops!")
 
 class CodeScreen(Screen):
-    def sending_code(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs) 
+        self.attempts_code = 0
+        
+
+    def validating_code(self):        
         email = getattr(self, "user_email", None)
         acess = MDApp.get_running_app()        
         code = self.ids.code_mailed.text
-        attemps_code = 0
+        
 
         if not email:
             acess.show_popup("No email found. Please retry.", title="Error")
             return
-
+            
+        if code == "":
+            return acess.show_popup("Please enter the code you received before submitting it!", title="Hey")
+        
+            
         try:
             with sqlite3.connect("data/essentials_db.db") as conn:
                 cursor = conn.cursor()
@@ -726,23 +769,49 @@ class CodeScreen(Screen):
                 acess.show_popup("No recovery code found. Please try again.", title="Error")
                 return
             
+                       
             code_from_db = row[0]
-            if code == code_from_db:
-                #go to reset password screen
-                pass
+            if code == code_from_db:                
+                acess.root.current = "changing_password"
+                self.ids.code_mailed.text = ""
             else:
-                attemps_code += 1
-                if attemps_code >= 3:
+                self.attempts_code += 1
+                if self.attempts_code >= 3:
                      acess.show_popup("Too many incorrect tries. Please request a new code.", title="Locked Out")
+                     self.ids.code_mailed.text = ""
+                     self.attempts_code = 0
+                     acess.root.current = "forgot_pass_screen"                     
                 else:
+                    self.ids.code_mailed.text = ""
                     acess.show_popup("Sorry, the code you typed is wrong. Please double-check your email.", title="Oops!")
 
-        except Exception:           
-            acess.show_popup("Something went wrong. Try again.", title="Oops!")
+        except Exception as e:           
+            acess.show_popup(f"Something went wrong: {str(e)}", title="Oops!")
 
 
 
 
+class ChangingPassScreen(Screen):
+    def double_checkingpass(self):
+        acess = MDApp.get_running_app()
+        email = getattr(self, "user_email", None)       
+        if self.ids.recovery_pass.text == "" or self.ids.recovery_pass_confirm.text == "":            
+            return acess.show_popup("All fields are required!", title="Hey!")
+        elif self.ids.recovery_pass.text != self.ids.recovery_pass_confirm.text:
+            return acess.show_popup("Passwords do not match!", title="Wow!")
+        else:
+            password = self.ids.recovery_pass_confirm.text
+            password_hash_confirm = sha256(password.encode()).hexdigest()
+            with sqlite3.connect("data/essentials_db.db") as conn:
+                cursor = conn.cursor()
+                cursor.execute("""UPDATE users SET password_hash = ? WHERE email = ?""", (password_hash_confirm, email))
+                conn.commit()
 
+            acess.root.current = "login"
+            return acess.show_popup("Password changed successfully!", title="Heck Yeah!")
+
+                    
+
+        
 
 Essentials().run()  

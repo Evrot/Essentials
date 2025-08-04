@@ -1,5 +1,6 @@
 
-ScreenManager:        
+ScreenManager:
+        LoadingScreen:        
         LoginScreen:
         HomeScreen:
         SignupScreen:
@@ -10,6 +11,34 @@ ScreenManager:
         ForgotPasswordScreen:
         CodeScreen:
         ChangingPassScreen:
+
+
+<LoadingScreen>:
+        name: "loading_screen"
+        MDFloatLayout:
+                Image:
+                        source: "images/background_3.png"
+                        allow_stretch: True
+                        keep_ratio: False
+                        size_hint: 1, 1
+                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                
+                MDLabel:
+                        text: "Loading the app, please wait..."
+                        halign: "center"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.7}
+                        size_hint: .8, None
+                        font_name: "fonts/jersey_25.ttf"
+                        font_size: "25sp"
+                        color: 0, 0, 0, 1 
+
+                MDSpinner:
+                        size_hint: None, None
+                        size: "32dp", "32dp"
+                        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                        active: True
+                        md_bg_color: 0, 0, 0, 0.3
+                        color: 0.5, 0.8, 0.5, 1
 
 
 <LoginScreen>:
@@ -682,7 +711,7 @@ ScreenManager:
 
                 
 
-                MDFlatButton:                
+                MDFlatButton:                                      
                         text: "SUBMIT!"
                         size_hint: .2, None
                         height: "48dp"
@@ -753,7 +782,7 @@ ScreenManager:
 
                 
 
-                MDFlatButton:                
+                MDFlatButton:                                        
                         text: "SUBMIT!"
                         size_hint: .2, None
                         height: "48dp"

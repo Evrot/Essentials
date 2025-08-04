@@ -11,7 +11,7 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.swiper import MDSwiper, MDSwiperItem
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivy.core.window import Window
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDFlatButton, MDIconButton
 from kivymd.uix.progressbar import MDProgressBar
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.fitimage import FitImage
@@ -26,6 +26,11 @@ from email.mime.text import MIMEText
 from dotenv import load_dotenv
 import os
 from kivy.clock import Clock
+import icon_matcher_2
+from threading import Thread
+from icon_matcher_2 import *
+
+
 
 
 
@@ -42,12 +47,12 @@ class Essentials(MDApp):
         self.current_user_id = None
         self.greeting_name = ""
     
-        
-
+    
     def build(self):        
         self.create_user_table()
 
         sm = ScreenManager(transition=FadeTransition())
+        sm.add_widget(LoadingScreen(name="loading_screen"))
         sm.add_widget(LoginScreen(name="login"))
         sm.add_widget(SignupScreen(name="signup"))
         sm.add_widget(HomeScreen(name="home"))
@@ -286,7 +291,23 @@ class Essentials(MDApp):
                 delete_screen.clear_fields_delete()
             
 
+class LoadingScreen(Screen):
+    def on_enter(self):
+        Clock.schedule_once(lambda dt: self.load_model_in_background(), 0.01)
 
+        Clock.schedule_once(lambda dt: self.on_model_loaded(), 4)
+
+    def on_model_loaded(self):
+        MDApp.get_running_app().root.current = "login"
+
+    def load_model_in_background(self):
+        def _load():
+            icon_matcher_2.load_model()
+            Clock.schedule_once(lambda dt: self.on_model_loaded())
+
+        Thread(target=_load).start()
+
+        
         
     
 class LoginScreen(Screen):
@@ -499,11 +520,11 @@ class HobbiesListScreen(Screen):
                 )
                 progress_capture.bind(text=lambda instance, value: acess.limit_field_length(instance, value, 7))
                 
-                bg_image = FitImage(
-                    source="images/logo.png",
-                    size_hint=(None, None),
-                    size=(dp(150), dp(150)),
-                    pos_hint={"center_x": 0.5, "center_y": 0.75}                    
+                hobby_icon = icon_matcher_2.match_user_input(hobby)
+                bg_image = MDIconButton(
+                    icon = hobby_icon,                
+                    pos_hint={"center_x": 0.5, "center_y": 0.75},
+                    icon_size = sp(40)                    
                 )
                 
 
@@ -579,7 +600,7 @@ class HobbiesListScreen(Screen):
                 acess.show_popup("Something went wrong. Try again.", title="Oops!")
 
 class StatsScreen(Screen):
-    # Creating stats table
+    # Creating stats table    
     def creating_table(self):
         data = []             
         acess = MDApp.get_running_app()
@@ -815,3 +836,4 @@ class ChangingPassScreen(Screen):
         
 
 Essentials().run()  
+

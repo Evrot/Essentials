@@ -14,7 +14,6 @@ from kivy.core.window import Window
 from kivymd.uix.button import MDFlatButton, MDIconButton
 from kivymd.uix.progressbar import MDProgressBar
 from kivymd.uix.textfield import MDTextField
-from kivymd.uix.fitimage import FitImage
 from kivymd.uix.gridlayout import MDGridLayout
 from kivy.metrics import dp, sp
 from kivy.uix.scrollview import ScrollView
@@ -26,9 +25,9 @@ from email.mime.text import MIMEText
 from dotenv import load_dotenv
 import os
 from kivy.clock import Clock
-import icon_matcher_2
+import icon_matcher
 from threading import Thread
-from icon_matcher_2 import *
+from contextlib import closing
 
 
 
@@ -38,18 +37,19 @@ Window.minimum_width, Window.minimum_height = (800, 600)
 Window.maximum_width, Window.maximum_height = (800, 600)
 
 
-Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand') 
 
-
+# MDApp
 class Essentials(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.current_user_id = None
-        self.greeting_name = ""
+        self.current_user_id = None # ID that will be used to link the user's information on every screen.
+        self.greeting_name = "" # Variable used to generate personalized names based on the user's ID and name.
     
     
+    # Creating the database and adding each screen to the ScreenManager.
     def build(self):        
-        self.create_user_table()
+        self.create_db() 
 
         sm = ScreenManager(transition=FadeTransition())
         sm.add_widget(LoadingScreen(name="loading_screen"))
@@ -65,53 +65,53 @@ class Essentials(MDApp):
         sm.add_widget(ChangingPassScreen(name="changing_password"))
         return sm
     
-    def create_user_table(self):
-        conn = sqlite3.connect("data/essentials_db.db")
-        cursor = conn.cursor()
-        cursor.execute("""
-                    CREATE TABLE if not exists users(
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    fullname TEXT NOT NULL,
-                    email TEXT UNIQUE NOT NULL,
-                    birthday DATE NOT NULL,
-                    password_hash TEXT NOT NULL,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    updated_at DATETIME,
-                    recovery_code TEXT)
-                       """)
-        cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS hobbies (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    hobby_name TEXT NOT NULL,
-                    unit_measure TEXT,
-                    goal REAL,                    
-                    progress REAL,
-                    updated_at DATETIME,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users(id),
-                    UNIQUE(user_id, hobby_name)
-                            )
-                        """)
-        cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS statistic (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id INTEGER NOT NULL,
-                    hobby_name TEXT NOT NULL,
-                    unit_measure TEXT,
-                    goal REAL,
-                    progress REAL,
-                    updated_at DATETIME,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,                    
-                    created_date TEXT GENERATED ALWAYS AS (date(created_at)) VIRTUAL,
-                    UNIQUE(user_id, hobby_name, created_date)
-                            )
-                        """)
-
-        conn.commit()
-        conn.close()
-        return self.root    
-
+    # Method responsible for creating the database.
+    def create_db(self):
+        with sqlite3.connect("data/essentials_db.db") as conn:
+            with closing(conn.cursor()) as cursor:        
+                cursor.execute("""
+                            CREATE TABLE if not exists users(
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            fullname TEXT NOT NULL,
+                            email TEXT UNIQUE NOT NULL,
+                            birthday DATE NOT NULL,
+                            password_hash TEXT NOT NULL,
+                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            updated_at DATETIME,
+                            recovery_code TEXT)
+                            """)
+                cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS hobbies (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id INTEGER NOT NULL,
+                            hobby_name TEXT NOT NULL,
+                            unit_measure TEXT,
+                            goal REAL,                    
+                            progress REAL,
+                            updated_at DATETIME,
+                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY (user_id) REFERENCES users(id),
+                            UNIQUE(user_id, hobby_name)
+                                    )
+                                """)
+                cursor.execute("""
+                            CREATE TABLE IF NOT EXISTS statistic (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id INTEGER NOT NULL,
+                            hobby_name TEXT NOT NULL,
+                            unit_measure TEXT,
+                            goal REAL,
+                            progress REAL,
+                            updated_at DATETIME,
+                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,                    
+                            created_date TEXT GENERATED ALWAYS AS (date(created_at)) VIRTUAL,
+                            UNIQUE(user_id, hobby_name, created_date)
+                                    )
+                                """)
+                conn.commit()                
+                return self.root    
+    
+    # Methods responsible for creating and displaying all pop-ups used on screens.
     def show_popup(self, message, title="Hey!"):        
         popup = Popup(
             title=title,
@@ -130,80 +130,7 @@ class Essentials(MDApp):
             size=(665, 150),
             auto_dismiss=True
         )
-        popup.open()
-           
-        
-    def create_account(self):
-        signup_screen = self.root.get_screen("signup")
-        fullname = signup_screen.ids.user_fullname.text.strip().title()
-        email = signup_screen.ids.user_email.text.strip().lower()
-        password = signup_screen.ids.user_password.text.strip()
-        confirm_password = signup_screen.ids.user_password_confirm.text.strip()
-        birthday = signup_screen.ids.user_birthday.text.strip()
-
-        if not fullname or not email or not password or not confirm_password or not birthday:
-            self.show_popup("All fields are required!", title = "Wow!")
-            return
-
-        if password != confirm_password:
-            self.show_popup("Passwords do not match!", title = "Wow!")
-            return
-
-        password_hash = sha256(password.encode()).hexdigest() 
-
-        try:
-            conn = sqlite3.connect("data/essentials_db.db", timeout = 5)
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO users (fullname, email, birthday, password_hash)
-                VALUES (?, ?, ?, ?)
-            """, (fullname, email, birthday, password_hash))
-            conn.commit()
-            self.show_popup("Account created successfully!", title="Heck yes!")
-            self.root.current = "login"
-            signup_screen.clear_fields_signup()   
-            
-
-        except sqlite3.IntegrityError as e:
-            self.show_popup("This email already exists!", title="Oops!")
-
-        except sqlite3.OperationalError as e:
-            self.show_popup("Database is busy, please try again.", title = "STAY HARD!")
-            
-            
-
-        finally:
-            cursor.close()
-            conn.close()
-    
-    def login_authentification(self):
-        login_screen = self.root.get_screen("login")
-        login = login_screen.ids.username_field.text.strip()
-        password = login_screen.ids.password_field.text.strip()
-        hashed_pw = sha256(password.encode()).hexdigest()
-        conn = sqlite3.connect("data/essentials_db.db")
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT id, fullname, email, password_hash FROM users WHERE email = ? AND  password_hash = ?", (login, hashed_pw))
-        user = cursor.fetchone()
-        
-        if user:            
-            self.current_user_id = user[0]
-            self.greeting_name = user[1]
-            self.root.current = "home"
-            home_screnn = self.root.get_screen("home")
-            hobby_screen = self.root.get_screen("hobby")
-            hobbies_list_screen = self.root.get_screen("hobbies_list")
-            hobbies_list_screen.ids.greetings.text = f"{self.current_day()}"          
-            hobby_screen.ids.greetings.text = f"Have fun, make mistakes, and keep going. \nThat’s how you grow {self.greeting_name}!"
-            home_screnn.ids.greetings.text = f"Welcome back, {self.greeting_name}!"
-            login_screen.clear_fields_login()
-        else:
-            if not login or not password:
-                self.show_popup("Hey don’t forget to enter your email and password.", title = "Wow!")
-
-            else:
-                self.show_popup("Sorry, password or e-mail invalid.", title = "Try again!")
+        popup.open()    
 
     def limit_field_length(self, instance, value, max_lenth = 10):
         if len(value) > max_lenth:
@@ -295,15 +222,19 @@ class LoadingScreen(Screen):
     def on_enter(self):
         Clock.schedule_once(lambda dt: self.load_model_in_background(), 0.01)
 
-        Clock.schedule_once(lambda dt: self.on_model_loaded(), 4)
+        Clock.schedule_once(lambda dt: self.on_model_loaded(), 5)
 
+        
     def on_model_loaded(self):
         MDApp.get_running_app().root.current = "login"
 
     def load_model_in_background(self):
         def _load():
-            icon_matcher_2.load_model()
-            Clock.schedule_once(lambda dt: self.on_model_loaded())
+            try:
+                icon_matcher.load_model()
+            except Exception as e:
+                print("Model loading failed:", e)
+                    
 
         Thread(target=_load).start()
 
@@ -311,11 +242,41 @@ class LoadingScreen(Screen):
         
     
 class LoginScreen(Screen):
+    # Method responsible for clearing all input fields on the LoginScreen.
     def clear_fields_login(self):
         self.ids.username_field.text = ""
         self.ids.password_field.text = ""
 
-class SignupScreen(Screen):
+
+    def login_authentification(self):
+        access = MDApp.get_running_app()
+        login = self.ids.username_field.text.strip()
+        password = self.ids.password_field.text.strip()
+        hashed_pw = sha256(password.encode()).hexdigest()
+        with sqlite3.connect("data/essentials_db.db") as conn:
+            with closing(conn.cursor()) as cursor:
+                cursor = conn.cursor()
+                cursor.execute("SELECT id, fullname, email, password_hash FROM users WHERE email = ? AND  password_hash = ?", (login, hashed_pw))
+                user = cursor.fetchone()
+        
+        if user:            
+            access.current_user_id = user[0]
+            access.greeting_name = user[1]
+            access.root.current = "home"            
+            hobby_screen = access.root.get_screen("hobby")
+            hobbies_list_screen = access.root.get_screen("hobbies_list")
+            hobbies_list_screen.ids.greetings.text = f"{access.current_day()}"          
+            hobby_screen.ids.greetings.text = f"Have fun, make mistakes, and keep going. \nThat’s how you grow {access.greeting_name}!"            
+            self.clear_fields_login()
+        else:
+            if not login or not password:
+                access.show_popup("Hey don’t forget to enter your email and password.", title = "Wow!")
+
+            else:
+                access.show_popup("Sorry, password or e-mail invalid.", title = "Try again!")
+
+class SignupScreen(Screen):    
+    # Method responsible for clearing all input fields on the SignupScreen. 
     def clear_fields_signup(self):
         self.ids.user_fullname.text = ""
         self.ids.user_email.text = ""
@@ -323,11 +284,66 @@ class SignupScreen(Screen):
         self.ids.user_password_confirm.text = ""
         self.ids.user_birthday.text = ""
 
+    # Method responsible for creating a user's account. 
+    def create_account(self):
+        access = MDApp.get_running_app()  # Gets access to the MDApp instance
+        # Capturing user's input.       
+        fullname = self.ids.user_fullname.text.strip().title()
+        email = self.ids.user_email.text.strip().lower()
+        password = self.ids.user_password.text.strip()
+        confirm_password = self.ids.user_password_confirm.text.strip()
+        birthday = self.ids.user_birthday.text.strip()
+
+        # Checking if any required field is missing to prevent invalid database entries. 
+        if not fullname or not email or not password or not confirm_password or not birthday:
+            access.show_popup("All fields are required!", title = "Wow!")
+            return
+
+        # Checking if passwords match. 
+        if password != confirm_password:
+            access.show_popup("Passwords do not match!", title = "Wow!")
+            return
+
+        # Hashing the password to improve security and ensure it’s not stored in plain text. 
+        password_hash = sha256(password.encode()).hexdigest() 
+
+        # Inserting the user's information into the database. 
+        try:
+            with sqlite3.connect("data/essentials_db.db") as conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO users (fullname, email, birthday, password_hash)
+                        VALUES (?, ?, ?, ?)
+                    """, (fullname, email, birthday, password_hash))
+                    conn.commit()
+            access.show_popup("Account created successfully!", title="Heck yes!")
+            access.root.current = "login" # Redirecting to the LoginScreen. 
+            self.clear_fields_signup()  # Clearing the fields to prepare for the next user 
+            
+
+        except sqlite3.IntegrityError as e: 
+            # Handles duplicate email error. Each email must be unique in the database 
+            print(e)
+            self.clear_fields_signup()
+            access.show_popup("This email already exists!", title="Oops!") 
+
+        except sqlite3.OperationalError as e: 
+            # Handles database operation issues or timeouts, useful for informing the user it's temporary. 
+            print(e)
+            self.clear_fields_signup()
+            access.show_popup("Database is busy, please try again.", title = "STAY HARD!")
+         
+
 class HomeScreen(Screen):
     def on_enter(self):
-        acess = MDApp.get_running_app()
-        storage_updating = acess.root.get_screen("hobbies_list")     
-        storage_updating.storage_hobby() 
+        access = MDApp.get_running_app()
+        storage_updating = access.root.get_screen("hobbies_list")     
+        storage_updating.storage_hobby()
+
+    def greetings(self):
+        access = MDApp.get_running_app()
+        self.ids.greetings.text = f"Welcome back, {access.greeting_name}!" 
         
 
 class HobbyScreen(Screen):
@@ -520,7 +536,12 @@ class HobbiesListScreen(Screen):
                 )
                 progress_capture.bind(text=lambda instance, value: acess.limit_field_length(instance, value, 7))
                 
-                hobby_icon = icon_matcher_2.match_user_input(hobby)
+                if icon_matcher.is_model_loaded():
+                    hobby_icon = icon_matcher.match_user_input(hobby)                    
+                    if hobby_icon is None:
+                        hobby_icon = "teddy-bear"
+                else:                    
+                    hobby_icon = "teddy-bear"
                 bg_image = MDIconButton(
                     icon = hobby_icon,                
                     pos_hint={"center_x": 0.5, "center_y": 0.75},
@@ -814,12 +835,12 @@ class CodeScreen(Screen):
 
 class ChangingPassScreen(Screen):
     def double_checkingpass(self):
-        acess = MDApp.get_running_app()
+        access = MDApp.get_running_app()
         email = getattr(self, "user_email", None)       
         if self.ids.recovery_pass.text == "" or self.ids.recovery_pass_confirm.text == "":            
-            return acess.show_popup("All fields are required!", title="Hey!")
+            return access.show_popup("All fields are required!", title="Hey!")
         elif self.ids.recovery_pass.text != self.ids.recovery_pass_confirm.text:
-            return acess.show_popup("Passwords do not match!", title="Wow!")
+            return access.show_popup("Passwords do not match!", title="Wow!")
         else:
             password = self.ids.recovery_pass_confirm.text
             password_hash_confirm = sha256(password.encode()).hexdigest()
@@ -828,8 +849,8 @@ class ChangingPassScreen(Screen):
                 cursor.execute("""UPDATE users SET password_hash = ? WHERE email = ?""", (password_hash_confirm, email))
                 conn.commit()
 
-            acess.root.current = "login"
-            return acess.show_popup("Password changed successfully!", title="Heck Yeah!")
+            access.root.current = "login"
+            return access.show_popup("Password changed successfully!", title="Heck Yeah!")
 
                     
 

@@ -114,7 +114,7 @@ ScreenManager:
                 pos_hint: {"center_x": 0.5, "center_y": 0.35}
                 font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1                
-                on_release: app.login_authentification()
+                on_release: root.login_authentification(); app.root.get_screen("home").greetings()
 
                 
         MDFlatButton:
@@ -379,7 +379,7 @@ ScreenManager:
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
-                on_release: app.create_account()
+                on_release: root.create_account()
                 
                 
 

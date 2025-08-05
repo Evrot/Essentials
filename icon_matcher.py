@@ -47,8 +47,7 @@ canonical_icon_map = {
     "box": "boxing-glove",
     "martial": "karate",
     "archery": "bow-arrow",
-    "horse": "horse",    
-    "raft": "rafting",
+    "horse": "horse-human",      
     "design": "vector-point-edit",
     "tattoo": "needle",
     "brew": "beer",    
@@ -59,6 +58,10 @@ canonical_icon_map = {
     "tree": "pine-tree",
     "dog": "dog",
     "cat": "cat",
+    "gymnastics": "gymnastics",
+    "workout": "dumbbell",
+    "craft": "hammer-wrench",
+    "sleep": "sleep",    
 }
 
 model = None
@@ -78,6 +81,7 @@ def match_user_input(user_input):
     from sentence_transformers import util
     if not is_model_loaded():
         print("Model not loaded yet. Please wait.")
+        return None
     input_embedding = model.encode(user_input, convert_to_tensor=True)
     scores = util.cos_sim(input_embedding, key_embeddings)[0]
     best_match_idx = scores.argmax().item()

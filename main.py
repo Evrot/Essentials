@@ -536,12 +536,9 @@ class HobbiesListScreen(Screen):
                 )
                 progress_capture.bind(text=lambda instance, value: acess.limit_field_length(instance, value, 7))
                 
-                if icon_matcher.is_model_loaded():
-                    hobby_icon = icon_matcher.match_user_input(hobby)                    
-                    if hobby_icon is None:
-                        hobby_icon = "teddy-bear"
-                else:                    
-                    hobby_icon = "teddy-bear"
+                
+                hobby_icon = icon_matcher.match_user_input(hobby)           
+                    
                 bg_image = MDIconButton(
                     icon = hobby_icon,                
                     pos_hint={"center_x": 0.5, "center_y": 0.75},
@@ -620,7 +617,11 @@ class HobbiesListScreen(Screen):
             except Exception:                
                 acess.show_popup("Something went wrong. Try again.", title="Oops!")
 
-class StatsScreen(Screen):
+class StatsScreen(Screen):   
+
+    def update_table_height(self, table, min_table_height):
+        table.height = max(table.minimum_height, min_table_height)
+
     # Creating stats table    
     def creating_table(self):
         data = []             
@@ -631,20 +632,19 @@ class StatsScreen(Screen):
             size_hint = (0.9, 0.75)            
         )               
 
+        min_table_height = dp(420)
+
         #Creating gridlayout
         table = MDGridLayout(
             cols = 7,
             spacing = 10,
             padding = 10,
             md_bg_color = (0.5, 0.8, 0.5, 0.2),
-            radius = [30],           
+            radius = [30],
+            size_hint_y = None,           
         )
-        num_rows = len(table.children) // table.cols
-        if num_rows < 7:
-            table.size_hint_y = 1
-        else:
-            table.size_hint_y = None
-            table.bind(minimum_height=table.setter('height'))
+        
+        table.bind(minimum_height= lambda instance, value:self.update_table_height(table, min_table_height))
 
         stats_base = acess.root.get_screen("stats_screen").ids.stats_base #Getting acess to MDFloatLayout in .kv
         stats_base.add_widget(scroll) #Adding scrollview to the acess

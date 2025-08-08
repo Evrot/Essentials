@@ -114,7 +114,7 @@ ScreenManager:
                 pos_hint: {"center_x": 0.5, "center_y": 0.35}
                 font_name: "fonts/jersey_25.ttf"
                 md_bg_color: 0.5, 0.8, 0.5, 1                
-                on_release: root.login_authentification(); app.root.get_screen("home").greetings()
+                on_release: root.login_authentication(); app.root.get_screen("home").greetings_homescreen()
 
                 
         MDFlatButton:
@@ -172,8 +172,7 @@ ScreenManager:
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
-                on_release: 
-                        app.root.current = "hobby"
+                on_release: app.root.current = "hobby"; app.root.get_screen("hobby").greetings_hobbyscreen()
                         
 
         MDFlatButton:
@@ -189,7 +188,7 @@ ScreenManager:
                 on_press: 
                         app.root.get_screen("hobbies_list").showing_list()                        
                 on_release:                                            
-                        app.root.current = "hobbies_list"
+                        app.root.current = "hobbies_list"; app.root.get_screen("hobbies_list").greetings_hobbieslistscreen()
                         
                         
                         
@@ -422,7 +421,7 @@ ScreenManager:
                 md_bg_color: 0, 0, 0, 0
                 theme_text_color: "Custom"
                 text_color: 0.5, 0.8, 0.5, 1               
-                on_release: app.root.current = "home"
+                on_release: app.root.current = "home"; root.clear_fields_hobby()
 
         MDTextField:
                 id: user_hobby
@@ -501,7 +500,7 @@ ScreenManager:
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
-                on_release: app.create_hobby()
+                on_release: root.create_hobby()
 
 <DeleteHobbyScreen>:
         name: "delete_hobby"
@@ -568,8 +567,7 @@ ScreenManager:
                 md_bg_color: 0.5, 0.8, 0.5, 1
                 theme_text_color: "Custom"
                 text_color: 1, 1, 1, 1
-                on_release: 
-                        app.delete_hobby()                                  
+                on_release: root.delete_hobby()                                  
 
         
 
@@ -620,9 +618,8 @@ ScreenManager:
                         md_bg_color: 0, 0, 0, 0
                         theme_text_color: "Custom"
                         text_color: 0.5, 0.8, 0.5, 1               
-                        on_release:                                 
-                                app.root.current = "home"
-
+                        on_release: app.root.current = "home"; root.cleaning_no_hobbieslabel()
+                        
                                 
                        
         
@@ -658,8 +655,8 @@ ScreenManager:
                         theme_text_color: "Custom"
                         text_color: 0.5, 0.8, 0.5, 1               
                         on_release:                                 
-                                app.root.current = "home"
-                        on_press: root.cleaning_table()
+                                app.root.current = "home"; root.cleaning_table()
+                         
 
 
 <ForgotPasswordScreen>:

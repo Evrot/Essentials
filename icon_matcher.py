@@ -61,7 +61,9 @@ canonical_icon_map = {
     "gymnastics": "gymnastics",
     "workout": "dumbbell",
     "craft": "hammer-wrench",
-    "sleep": "sleep",    
+    "sleep": "sleep",
+    "bear": "teddy-bear",
+    "coding": "laptop",    
 }
 
 model = None
@@ -70,8 +72,12 @@ keys = list(canonical_icon_map.keys())
 
 def load_model():
     from sentence_transformers import SentenceTransformer
-    global model, key_embeddings    
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    global model, key_embeddings
+
+    # Load model from local folder 'model'.    
+    model = SentenceTransformer('model', device="cpu")
+
+    # Encode your keys once
     key_embeddings = model.encode(keys, convert_to_tensor=True)
 
 def is_model_loaded():
